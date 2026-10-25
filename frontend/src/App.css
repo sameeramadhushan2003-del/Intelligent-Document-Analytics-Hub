@@ -339,3 +339,96 @@
   color: #2563eb;
   font-weight: 700;
 }
+
+
+/* Authentication Pages */
+
+.auth-container {
+  min-height: 80vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #f8fafc;
+  padding: 40px 20px;
+}
+
+.auth-card {
+  background-color: white;
+  padding: 40px;
+  width: 100%;
+  max-width: 440px;
+  border-radius: 15px;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
+}
+
+.auth-card h1 {
+  color: #0f172a;
+  text-align: center;
+  margin-bottom: 10px;
+}
+
+.auth-card > p {
+  color: #64748b;
+  text-align: center;
+  line-height: 1.6;
+}
+
+.form-group {
+  margin-bottom: 22px;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: 600;
+  color: #334155;
+}
+
+.form-group input {
+  width: 100%;
+  padding: 13px;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  font-size: 15px;
+}
+
+.form-group input:focus {
+  outline: 2px solid #93c5fd;
+  border-color: #2563eb;
+}
+
+.auth-submit {
+  width: 100%;
+}
+
+.form-message {
+  margin-top: 15px;
+  color: #2563eb !important;
+  font-size: 13px;
+}
+
+.auth-footer {
+  margin-top: 25px;
+  font-size: 14px;
+}
+
+
+
+/* Registration Form Feedback */
+
+.auth-card .form-error {
+  margin-top: 10px;
+  margin-bottom: 15px;
+  color: #dc2626;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.auth-card .form-success {
+  margin-top: 10px;
+  margin-bottom: 15px;
+  color: #15803d;
+  font-size: 14px;
+  font-weight: 500;
+}
