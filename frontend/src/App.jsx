@@ -1,121 +1,159 @@
-import { useState } from 'react'
-import heroImg from './assets/hero.png'
-import reactLogo from './assets/react.svg'
-import viteLogo from './assets/vite.svg'
+
 import './App.css'
 
 function App() {
-  const [count, setCount] = useState(0)
+  const features = [
+    {
+      icon: '📄',
+      title: 'Document Management',
+      description:
+        'Upload, organize, and manage your documents in one secure workspace.',
+    },
+    {
+      icon: '🧠',
+      title: 'AI-Powered Questions',
+      description:
+        'Ask questions using natural language and discover relevant information.',
+    },
+    {
+      icon: '📊',
+      title: 'Document Analytics',
+      description:
+        'Explore document usage, important topics, and knowledge gaps.',
+    },
+  ]
 
   return (
-    <>
-      <section id="center">
-        <div className="hero">
-          <img src={heroImg} className="base" width="170" height="179" alt="" />
-          <img src={reactLogo} className="framework" alt="React logo" />
-          <img src={viteLogo} className="vite" alt="Vite logo" />
-        </div>
-        <div>
-          <h1>Intelligent Document Analytics Hub</h1>
-          <p>
-            <p>Upload, manage, and analyze documents using AI.</p>
-          </p>
-        </div>
+    <div className="app">
+
+      {/* Navigation bar */}
+      <header className="navbar">
+        <a href="#home" className="brand">
+          <span className="brand-icon">D</span>
+          <span>Document Analytics Hub</span>
+        </a>
+
+        <nav className="nav-links" aria-label="Main navigation">
+          <a href="#home">Home</a>
+          <a href="#features">Features</a>
+          <a href="#workflow">How It Works</a>
+        </nav>
+
         <button
+          className="btn btn-outline"
           type="button"
-          className="counter"
-          onClick={() => setCount((count) => count + 1)}
+          disabled
+          title="Authentication will be implemented soon"
         >
-          Count is {count}
+          Sign In (Soon)
         </button>
-      </section>
+      </header>
 
-      <div className="ticks"></div>
+      <main>
+        {/* Hero section */}
+        <section id="home" className="hero">
+          <div className="hero-content">
+            <span className="tag">RAG-Powered Document Intelligence</span>
 
-      <section id="next-steps">
-        <div id="docs">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#documentation-icon"></use>
-          </svg>
-          <h2>Documentation</h2>
-          <p>Your questions, answered</p>
-          <ul>
-            <li>
-              <a href="https://vite.dev/" target="_blank">
-                <img className="logo" src={viteLogo} alt="" />
-                Explore Vite
-              </a>
-            </li>
-            <li>
-              <a href="https://react.dev/" target="_blank">
-                <img className="button-icon" src={reactLogo} alt="" />
-                Learn more
-              </a>
-            </li>
-          </ul>
-        </div>
-        <div id="social">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#social-icon"></use>
-          </svg>
-          <h2>Connect with us</h2>
-          <p>Join the Vite community</p>
-          <ul>
-            <li>
-              <a href="https://github.com/vitejs/vite" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#github-icon"></use>
-                </svg>
-                GitHub
-              </a>
-            </li>
-            <li>
-              <a href="https://chat.vite.dev/" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#discord-icon"></use>
-                </svg>
-                Discord
-              </a>
-            </li>
-            <li>
-              <a href="https://x.com/vite_js" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#x-icon"></use>
-                </svg>
-                X.com
-              </a>
-            </li>
-            <li>
-              <a href="https://bsky.app/profile/vite.dev" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#bluesky-icon"></use>
-                </svg>
-                Bluesky
-              </a>
-            </li>
-          </ul>
-        </div>
-      </section>
+            <h1>
+              Understand Your Documents
+              <span className="highlight"> With AI</span>
+            </h1>
 
-      <div className="ticks"></div>
-      <section id="spacer"></section>
-    </>
+            <p className="hero-description">
+              Transform complex documents into useful knowledge.
+              Search, summarize, and get evidence-based answers
+              using intelligent document analysis.
+            </p>
+
+            <div className="hero-actions">
+              <a href="#features" className="btn btn-primary">
+                Explore Features
+              </a>
+              <a href="#workflow" className="btn btn-outline">
+                How It Works
+              </a>
+            </div>
+          </div>
+
+          {/* Sample answer card */}
+          <div className="preview-card">
+            <span className="preview-label">Example AI Response</span>
+
+            <p className="preview-question">
+              What is Retrieval-Augmented Generation?
+            </p>
+
+            <div className="answer-box">
+              <strong>AI Answer</strong>
+              <p>
+                RAG helps an AI answer questions by first finding
+                relevant information from trusted documents.
+              </p>
+            </div>
+
+            <p className="source-text">
+              📄 Example source: AI_Research.pdf — Page 12
+            </p>
+          </div>
+        </section>
+
+        {/* Features section */}
+        <section id="features" className="features-section">
+          <h2>Powerful Document Intelligence</h2>
+
+          <p className="section-description">
+            Everything you need to manage and understand documents.
+          </p>
+
+          <div className="feature-grid">
+            {features.map((feature) => (
+              <article className="feature-card" key={feature.title}>
+                <div className="feature-icon">{feature.icon}</div>
+                <h3>{feature.title}</h3>
+                <p>{feature.description}</p>
+              </article>
+            ))}
+          </div>
+        </section>
+
+        {/* Workflow section */}
+        <section id="workflow" className="workflow-section">
+          <h2>How It Works</h2>
+
+          <div className="workflow-grid">
+            <div className="workflow-step">
+              <span>01</span>
+              <h3>Upload</h3>
+              <p>Add your PDF or document.</p>
+            </div>
+
+            <div className="workflow-step">
+              <span>02</span>
+              <h3>Process</h3>
+              <p>AI indexes the document content.</p>
+            </div>
+
+            <div className="workflow-step">
+              <span>03</span>
+              <h3>Ask</h3>
+              <p>Ask questions in natural language.</p>
+            </div>
+
+            <div className="workflow-step">
+              <span>04</span>
+              <h3>Understand</h3>
+              <p>Receive answers with source references.</p>
+            </div>
+          </div>
+        </section>
+      </main>
+
+      <footer className="footer">
+        Intelligent Document Analytics Hub — RAG SaaS Project
+      </footer>
+
+    </div>
   )
 }
 
