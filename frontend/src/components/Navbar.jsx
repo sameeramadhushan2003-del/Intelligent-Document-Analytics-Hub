@@ -1,26 +1,27 @@
 
+import { Link, NavLink } from 'react-router'
+
 function Navbar() {
   return (
     <header className="navbar">
-      <a href="#home" className="brand">
+      <Link to="/" className="brand">
         <span className="brand-icon">D</span>
         <span>Document Analytics Hub</span>
-      </a>
+      </Link>
 
       <nav className="nav-links" aria-label="Main navigation">
-        <a href="#home">Home</a>
-        <a href="#features">Features</a>
-        <a href="#workflow">How It Works</a>
+        <NavLink to="/" end>
+          Home
+        </NavLink>
+
+        <NavLink to="/dashboard">
+          Dashboard Demo
+        </NavLink>
       </nav>
 
-      <button
-        className="btn btn-outline"
-        type="button"
-        disabled
-        title="Authentication will be implemented soon"
-      >
-        Sign In (Soon)
-      </button>
+      <Link to="/login" className="btn btn-outline">
+        Sign In
+      </Link>
     </header>
   )
 }

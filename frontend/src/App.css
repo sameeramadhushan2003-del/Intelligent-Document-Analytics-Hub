@@ -306,3 +306,36 @@
     padding: 60px 5%;
   }
 }
+
+
+/* Shared page layout */
+
+.page-shell {
+  width: min(90%, 900px);
+  margin: 0 auto;
+  padding: 90px 20px;
+  min-height: 70vh;
+}
+
+.page-shell h1 {
+  margin-top: 20px;
+  color: #0f172a;
+  font-size: 38px;
+}
+
+.page-shell p {
+  max-width: 650px;
+  color: #64748b;
+  font-size: 16px;
+  line-height: 1.8;
+}
+
+.page-shell a:not(.btn) {
+  color: #2563eb;
+  font-weight: 600;
+}
+
+.nav-links a.active {
+  color: #2563eb;
+  font-weight: 700;
+}
