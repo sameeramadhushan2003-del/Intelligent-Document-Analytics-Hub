@@ -1,0 +1,2 @@
+com\documentanalytics\backend\BackendApplication.class
+com\documentanalytics\backend\controller\HealthController.class
