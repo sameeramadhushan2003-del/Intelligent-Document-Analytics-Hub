@@ -1,6 +1,7 @@
 
 import './App.css'
 import Navbar from './components/Navbar.jsx'
+import FeatureCard from './components/FeatureCard.jsx'
 
 function App() {
   const features = [
@@ -88,11 +89,12 @@ function App() {
 
           <div className="feature-grid">
             {features.map((feature) => (
-              <article className="feature-card" key={feature.title}>
-                <div className="feature-icon">{feature.icon}</div>
-                <h3>{feature.title}</h3>
-                <p>{feature.description}</p>
-              </article>
+              <FeatureCard
+                key={feature.title}
+                icon={feature.icon}
+                title={feature.title}
+                description={feature.description}
+              />
             ))}
           </div>
         </section>
