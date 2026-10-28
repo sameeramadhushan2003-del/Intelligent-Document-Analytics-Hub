@@ -67,6 +67,20 @@
 			<artifactId>flyway-database-postgresql</artifactId>
 		</dependency>
 
+		
+		<!-- BCrypt password hashing -->
+		<dependency>
+			<groupId>org.springframework.security</groupId>
+			<artifactId>spring-security-crypto</artifactId>
+		</dependency>
+
+		<!-- Request validation -->
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-validation</artifactId>
+		</dependency>
+
+
 
 	</dependencies>
 
