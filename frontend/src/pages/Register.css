@@ -1,0 +1,133 @@
+
+.register-page {
+  min-height: calc(100vh - 80px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 48px 20px;
+  background: #f5f7fb;
+}
+
+.register-card {
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 480px;
+  padding: 38px;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 18px;
+  box-shadow: 0 14px 40px rgba(15, 23, 42, 0.07);
+}
+
+.register-heading {
+  text-align: center;
+  margin-bottom: 28px;
+}
+
+.register-eyebrow {
+  color: #2563eb;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+}
+
+.register-heading h1 {
+  margin: 12px 0;
+  font-size: 28px;
+  color: #0f172a;
+}
+
+.register-heading p {
+  color: #64748b;
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.register-form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.register-form label {
+  font-size: 14px;
+  font-weight: 600;
+  color: #334155;
+}
+
+.register-form input {
+  box-sizing: border-box;
+  width: 100%;
+  padding: 13px 14px;
+  margin-bottom: 12px;
+  border: 1px solid #cbd5e1;
+  border-radius: 9px;
+  background: #ffffff;
+  color: #0f172a;
+  font: inherit;
+}
+
+.register-form input:focus {
+  outline: 2px solid #93c5fd;
+  border-color: #2563eb;
+}
+
+.register-button {
+  width: 100%;
+  margin-top: 8px;
+  padding: 14px;
+  border: none;
+  border-radius: 9px;
+  color: white;
+  background: #2563eb;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.register-button:hover:not(:disabled) {
+  background: #1d4ed8;
+}
+
+.register-button:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+}
+
+.register-error,
+.register-success {
+  padding: 13px;
+  margin-bottom: 20px;
+  border-radius: 9px;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.register-error {
+  color: #b91c1c;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+}
+
+.register-success {
+  color: #166534;
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+}
+
+.register-footer {
+  margin-top: 24px;
+  text-align: center;
+  font-size: 14px;
+  color: #64748b;
+}
+
+.register-footer a {
+  color: #2563eb;
+  font-weight: 600;
+}
+
+@media (max-width: 480px) {
+  .register-card {
+    padding: 24px;
+  }
+}
