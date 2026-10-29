@@ -1,4 +1,4 @@
-
+import ProtectedRoute from "./components/ProtectedRoute.jsx";
 import { Routes, Route } from 'react-router'
 
 import Navbar from './components/Navbar.jsx'
@@ -19,7 +19,16 @@ function App() {
         <Route path="/" element={<Home />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
-        <Route path="/dashboard" element={<Dashboard />} />
+        
+        <Route
+          path="/dashboard"
+          element={
+            <ProtectedRoute>
+              <Dashboard />
+            </ProtectedRoute>
+          }
+        />
+
       </Routes>
     </>
   )

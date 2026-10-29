@@ -1,8 +1,15 @@
-
+import { useAuth } from "../context/AuthContext.jsx";
+import { useNavigate } from "react-router";
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router'
 
 function Dashboard() {
+  const { user, logout } = useAuth();
+  const navigate = useNavigate();
+  function handleLogout() {
+    logout();
+    navigate("/login", { replace: true });
+  }
   const [health, setHealth] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
@@ -38,11 +45,64 @@ function Dashboard() {
 
     loadHealth()
 
+    function handleLogout() {
+      logout();
+      navigate("/login", { replace: true });
+    }
+
     return () => controller.abort()
   }, [])
 
   return (
     <main className="page-shell">
+
+      
+    <section
+      className="dashboard-user-section"
+      style={{
+        display: "flex",
+        justifyContent: "space-between",
+        alignItems: "center",
+        flexWrap: "wrap",
+        gap: "16px",
+        padding: "20px",
+        marginBottom: "24px",
+        background: "#eff6ff",
+        border: "1px solid #bfdbfe",
+        borderRadius: "12px",
+      }}
+    >
+      <div>
+        <h2 style={{ margin: "0 0 8px", color: "#1e3a8a" }}>
+          Welcome, {user?.fullName || "User"}!
+        </h2>
+
+        <p style={{ margin: "0 0 4px", color: "#334155" }}>
+          {user?.email}
+        </p>
+
+        <span style={{ fontSize: "13px", color: "#64748b" }}>
+          Account role: {user?.role}
+        </span>
+      </div>
+
+      <button
+        type="button"
+        onClick={handleLogout}
+        style={{
+          background: "#dc2626",
+          color: "#ffffff",
+          border: "none",
+          padding: "12px 22px",
+          borderRadius: "8px",
+          fontWeight: "600",
+          cursor: "pointer",
+        }}
+      >
+        Logout
+      </button>
+    </section>
+
       <span className="tag">Full-Stack Integration</span>
 
       <h1>Document Analytics Dashboard</h1>

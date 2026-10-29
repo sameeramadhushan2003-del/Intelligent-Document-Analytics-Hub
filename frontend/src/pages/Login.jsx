@@ -1,23 +1,43 @@
-
-import { useState } from 'react'
-import { Link } from 'react-router'
+import "./Login.css";
+import { useState } from "react";
+import { Link, useNavigate } from "react-router";
+import { useAuth } from "../context/AuthContext.jsx";
 
 function Login() {
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
-  const [message, setMessage] = useState('')
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
 
-  const handleSubmit = (event) => {
-    event.preventDefault()
+  const { login } = useAuth();
+  const navigate = useNavigate();
 
-    setMessage(
-      'Form validation passed. Backend authentication is not connected yet.'
-    )
+  async function handleSubmit(event) {
+    event.preventDefault();
+
+    setError("");
+    setLoading(true);
+
+    try {
+      await login(email.trim(), password);
+
+      // Redirect after successful authentication
+      navigate("/dashboard", { replace: true });
+
+    } catch (err) {
+      setError(
+        err.message || "Unable to log in. Please try again."
+      );
+
+    } finally {
+      setLoading(false);
+    }
   }
 
   return (
     <main className="auth-container">
       <div className="auth-card">
+
         <h1>Welcome Back</h1>
 
         <p>
@@ -25,6 +45,7 @@ function Login() {
         </p>
 
         <form onSubmit={handleSubmit}>
+
           <div className="form-group">
             <label htmlFor="email">Email Address</label>
 
@@ -53,20 +74,37 @@ function Login() {
             />
           </div>
 
-          <button type="submit" className="btn btn-primary auth-submit">
-            Sign In
-          </button>
+          {error && (
+            <p
+              role="alert"
+              className="form-message"
+              style={{
+                color: "#dc2626",
+                marginTop: "10px",
+              }}
+            >
+              {error}
+            </p>
+          )}
+
+        <button
+          type="submit"
+          className="login-submit-button"
+          disabled={loading}
+        >
+          {loading ? "Signing in..." : "Sign In"}
+        </button>         
+
         </form>
 
-        {message && <p className="form-message" role="status">{message}</p>}
-
         <p className="auth-footer">
-          Don't have an account?{' '}
+          Don't have an account?{" "}
           <Link to="/register">Create Account</Link>
         </p>
+
       </div>
     </main>
-  )
+  );
 }
 
-export default Login
+export default Login;
