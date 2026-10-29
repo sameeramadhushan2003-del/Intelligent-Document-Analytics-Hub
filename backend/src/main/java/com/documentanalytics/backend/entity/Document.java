@@ -1,6 +1,6 @@
 
 package com.documentanalytics.backend.entity;
-
+import jakarta.persistence.Column;
 import jakarta.persistence.*;
 import java.time.Instant;
 
@@ -32,7 +32,18 @@ public class Document {
     @Column(name = "uploaded_at", nullable = false, updatable = false)
     private Instant uploadedAt;
 
-    protected Document() {
+    
+    @Column(name = "owner_user_id")
+    private Long ownerUserId;
+
+    @Column(name = "storage_key", length = 120)
+    private String storageKey;
+
+    @Column(name = "sha256_hex", length = 64)
+    private String sha256Hex;
+
+
+    public Document() {
         // Required by JPA
     }
 
@@ -82,4 +93,51 @@ public class Document {
     public Instant getUploadedAt() {
         return uploadedAt;
     }
+
+    public Long getOwnerUserId() {
+        return ownerUserId;
+    }
+
+    public void setOwnerUserId(Long ownerUserId) {
+        this.ownerUserId = ownerUserId;
+    }
+
+    public String getStorageKey() {
+        return storageKey;
+    }
+
+    public void setStorageKey(String storageKey) {
+        this.storageKey = storageKey;
+    }
+
+    public String getSha256Hex() {
+        return sha256Hex;
+    }
+
+    public void setSha256Hex(String sha256Hex) {
+        this.sha256Hex = sha256Hex;
+    }
+
+    
+    public void setTitle(String title) {
+        this.title = title;
+    }
+
+    public void setOriginalFilename(String originalFilename) {
+        this.originalFilename = originalFilename;
+    }
+
+    public void setContentType(String contentType) {
+        this.contentType = contentType;
+    }
+
+    public void setFileSizeBytes(long fileSizeBytes) {
+        this.fileSizeBytes = fileSizeBytes;
+    }
+
+    public void setProcessingStatus(DocumentStatus processingStatus) {
+        this.processingStatus = processingStatus;
+    }
+
+
 }

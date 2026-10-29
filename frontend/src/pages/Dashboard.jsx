@@ -86,6 +86,24 @@ function Dashboard() {
         </span>
       </div>
 
+      
+      <button
+        type="button"
+        onClick={() => navigate("/documents")}
+        style={{
+          background: "#2563eb",
+          color: "#ffffff",
+          border: "none",
+          padding: "12px 22px",
+          borderRadius: "8px",
+          fontWeight: "600",
+          cursor: "pointer",
+        }}
+      >
+        My Documents
+      </button>
+
+
       <button
         type="button"
         onClick={handleLogout}
