@@ -35,6 +35,7 @@ function Documents() {
 
   const [processingDocumentId, setProcessingDocumentId] = useState(null);
   const [processMessage, setProcessMessage] = useState("");
+  const [generatingDocumentId, setGeneratingDocumentId] = useState(null);
 
   // Load the authenticated user's documents.
   useEffect(() => {
@@ -225,6 +226,74 @@ function Documents() {
     }
   }
 
+  
+    async function handleGenerateChunks(documentId) {
+      if (
+        generatingDocumentId !== null ||
+        processingDocumentId !== null
+      ) {
+        return;
+      }
+
+      setGeneratingDocumentId(documentId);
+      setProcessMessage("");
+
+      try {
+        if (!accessToken) {
+          throw new Error("Please log in again.");
+        }
+
+        const response = await fetch(
+          `http://localhost:8080/api/documents/${documentId}/chunks/generate`,
+          {
+            method: "POST",
+            headers: {
+              Authorization: `Bearer ${accessToken}`,
+            },
+          }
+        );
+
+        if (!response.ok) {
+          if (response.status === 401) {
+            throw new Error(
+              "Your session has expired. Please log in again."
+            );
+          }
+
+          if (response.status === 404) {
+            throw new Error(
+              "Document not found or access denied."
+            );
+          }
+
+          if (response.status === 409) {
+            throw new Error(
+              "Please process the document before generating chunks."
+            );
+          }
+
+          throw new Error(
+            `Chunk generation failed (HTTP ${response.status}).`
+          );
+        }
+
+        const result = await response.json();
+
+        setProcessMessage(
+          `Document #${result.documentId}: ` +
+          `${result.chunkCount} chunk(s) generated and saved successfully.`
+        );
+
+      } catch (error) {
+        setProcessMessage(
+          error.message || "Unable to generate document chunks."
+        );
+      } finally {
+        setGeneratingDocumentId(null);
+      }
+    }
+
+
 
   return (
     <main className="documents-page">
@@ -389,6 +458,31 @@ function Documents() {
                           ? "Processing..."
                           : "Process"}
                       </button>
+
+                      
+                      <button
+                        type="button"
+                        onClick={() => handleGenerateChunks(document.id)}
+                        disabled={
+                          generatingDocumentId !== null ||
+                          processingDocumentId !== null ||
+                          !["EXTRACTED", "INDEXED"].includes(document.processingStatus)
+                        }
+                        style={{
+                          backgroundColor: "#0d9488",
+                          color: "#ffffff",
+                          border: "none",
+                          borderRadius: "7px",
+                          padding: "9px 14px",
+                          marginLeft: "8px",
+                          cursor: "pointer",
+                        }}
+                      >
+                        {generatingDocumentId === document.id
+                          ? "Generating..."
+                          : "Generate Chunks"}
+                      </button>
+
                     </td>
 
 
