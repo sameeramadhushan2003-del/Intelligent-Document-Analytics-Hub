@@ -33,6 +33,9 @@ function Documents() {
 
   const fileInputRef = useRef(null);
 
+  const [processingDocumentId, setProcessingDocumentId] = useState(null);
+  const [processMessage, setProcessMessage] = useState("");
+
   // Load the authenticated user's documents.
   useEffect(() => {
     if (!accessToken) {
@@ -170,6 +173,59 @@ function Documents() {
     }
   }
 
+  
+  async function handleProcessDocument(documentId) {
+    if (processingDocumentId !== null) return;
+
+    setProcessingDocumentId(documentId);
+    setProcessMessage("");
+
+    try {
+      if (!accessToken) {
+        throw new Error("Please log in again.");
+      }
+
+      const response = await fetch(
+        `http://localhost:8080/api/documents/${documentId}/process`,
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+          },
+        }
+      );
+
+      if (!response.ok) {
+        if (response.status === 401) {
+          throw new Error("Session expired. Please log in again.");
+        }
+
+        if (response.status === 404) {
+          throw new Error("Document not found or access denied.");
+        }
+
+        if (response.status === 422) {
+          throw new Error("No readable text could be extracted.");
+        }
+
+        throw new Error(`Processing failed (HTTP ${response.status}).`);
+      }
+
+      const result = await response.json();
+
+      setProcessMessage(
+        `Document #${result.documentId} processed successfully. ` +
+        `${result.characterCount} characters extracted.`
+      );
+
+    } catch (error) {
+      setProcessMessage(error.message || "Processing failed.");
+    } finally {
+      setProcessingDocumentId(null);
+    }
+  }
+
+
   return (
     <main className="documents-page">
 
@@ -269,6 +325,12 @@ function Documents() {
         ) : (
           <div className="documents-table-wrapper">
 
+            {processMessage && (
+              <p role="status" style={{ marginTop: "12px" }}>
+                {processMessage}
+              </p>
+            )}
+
             <table className="documents-table">
 
               <thead>
@@ -277,6 +339,7 @@ function Documents() {
                   <th>Size</th>
                   <th>Status</th>
                   <th>Uploaded At</th>
+                  <th>Action</th>
                 </tr>
               </thead>
 
@@ -305,6 +368,29 @@ function Documents() {
                           ).toLocaleString()
                         : "—"}
                     </td>
+
+                    
+                    <td>
+                      <button
+                        type="button"
+                        onClick={() => handleProcessDocument(document.id)}
+                        disabled={processingDocumentId !== null}
+                        style={{
+                          backgroundColor: "#2563eb",
+                          color: "#ffffff",
+                          border: "none",
+                          borderRadius: "7px",
+                          padding: "9px 14px",
+                          cursor: processingDocumentId !== null ? "not-allowed" : "pointer",
+                          opacity: processingDocumentId !== null ? 0.6 : 1,
+                        }}
+                      >
+                        {processingDocumentId === document.id
+                          ? "Processing..."
+                          : "Process"}
+                      </button>
+                    </td>
+
 
                   </tr>
                 ))}
