@@ -2,6 +2,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useAuth } from "../context/AuthContext.jsx";
 import "./Documents.css";
+import DocumentSemanticSearch from "../components/DocumentSemanticSearch";
 
 const MAX_FILE_SIZE = 10 * 1024 * 1024;
 
@@ -36,6 +37,9 @@ function Documents() {
   const [processingDocumentId, setProcessingDocumentId] = useState(null);
   const [processMessage, setProcessMessage] = useState("");
   const [generatingDocumentId, setGeneratingDocumentId] = useState(null);
+  const [generatingEmbeddingDocumentId, setGeneratingEmbeddingDocumentId] =
+    useState(null);
+  const [searchDocumentId, setSearchDocumentId] = useState(null);
 
   // Load the authenticated user's documents.
   useEffect(() => {
@@ -293,6 +297,76 @@ function Documents() {
       }
     }
 
+    
+    async function handleGenerateEmbeddings(documentId) {
+      if (
+        generatingEmbeddingDocumentId !== null ||
+        generatingDocumentId !== null ||
+        processingDocumentId !== null
+      ) {
+        return;
+      }
+
+      setGeneratingEmbeddingDocumentId(documentId);
+      setProcessMessage("");
+
+      try {
+        if (!accessToken) {
+          throw new Error("Please log in again.");
+        }
+
+        const response = await fetch(
+          `http://localhost:8080/api/documents/${documentId}/embeddings/generate`,
+          {
+            method: "POST",
+            headers: {
+              Authorization: `Bearer ${accessToken}`,
+            },
+          }
+        );
+
+        if (!response.ok) {
+          if (response.status === 401) {
+            throw new Error(
+              "Your session has expired. Please log in again."
+            );
+          }
+
+          if (response.status === 403 ||
+              response.status === 404) {
+            throw new Error(
+              "Document not found or access denied."
+            );
+          }
+
+          if (response.status === 409) {
+            throw new Error(
+              "Please generate document chunks first."
+            );
+          }
+
+          throw new Error(
+            `Embedding generation failed (HTTP ${response.status}).`
+          );
+        }
+
+        const result = await response.json();
+
+        setProcessMessage(
+          `Document #${result.documentId}: ` +
+          `${result.embeddingCount} embedding(s) generated and saved successfully.`
+        );
+
+      } catch (error) {
+        setProcessMessage(
+          error.message || "Unable to generate embeddings."
+        );
+      } finally {
+        setGeneratingEmbeddingDocumentId(null);
+      }
+    }
+
+
 
 
   return (
@@ -483,6 +557,66 @@ function Documents() {
                           : "Generate Chunks"}
                       </button>
 
+                      <button
+                        type="button"
+                        onClick={() => handleGenerateEmbeddings(document.id)}
+                        disabled={
+                          generatingEmbeddingDocumentId !== null ||
+                          generatingDocumentId !== null ||
+                          processingDocumentId !== null ||
+                          !["EXTRACTED", "INDEXED"].includes(
+                            document.processingStatus
+                          )
+                        }
+                        style={{
+                          backgroundColor: "#7c3aed",
+                          color: "#ffffff",
+                          border: "none",
+                          borderRadius: "7px",
+                          padding: "9px 14px",
+                          marginLeft: "8px",
+                          cursor: "pointer",
+                        }}
+                      >
+                        {generatingEmbeddingDocumentId === document.id
+                          ? "Generating Embeddings..."
+                          : "Generate Embeddings"}
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setSearchDocumentId((currentId) =>
+                            currentId === document.id ? null : document.id
+                          )
+                        }
+                        disabled={
+                          processingDocumentId !== null ||
+                          generatingDocumentId !== null ||
+                          generatingEmbeddingDocumentId !== null ||
+                          !["EXTRACTED", "INDEXED"].includes(
+                            document.processingStatus
+                          )
+                        }
+                        style={{
+                          backgroundColor:
+                            searchDocumentId === document.id
+                              ? "#475569"
+                              : "#2563eb",
+                          color: "#ffffff",
+                          border: "none",
+                          borderRadius: "7px",
+                          padding: "9px 14px",
+                          marginLeft: "8px",
+                          cursor: "pointer",
+                        }}
+                      >
+                        {searchDocumentId === document.id
+                          ? "Close Search"
+                          : "Search"}
+                      </button>
+
+
                     </td>
 
 
@@ -491,6 +625,19 @@ function Documents() {
               </tbody>
 
             </table>
+
+            
+            {searchDocumentId !== null &&
+              documents.some(
+                (document) => document.id === searchDocumentId
+              ) && (
+                <DocumentSemanticSearch
+                  key={searchDocumentId}
+                  documentId={searchDocumentId}
+                  accessToken={accessToken}
+                />
+              )}
+
 
           </div>
         )}
