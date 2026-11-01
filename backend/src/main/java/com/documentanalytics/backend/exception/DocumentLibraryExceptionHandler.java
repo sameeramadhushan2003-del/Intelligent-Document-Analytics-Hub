@@ -11,6 +11,10 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.web.server.ResponseStatusException;
 
 @Order(Ordered.HIGHEST_PRECEDENCE)
@@ -36,19 +40,33 @@ public class DocumentLibraryExceptionHandler {
         return ResponseEntity.status(status).body(Map.of("message", message));
     }
 
+    @ExceptionHandler({
+            MethodArgumentNotValidException.class,
+            HttpMessageNotReadableException.class,
+            MethodArgumentTypeMismatchException.class
+    })
+    public ResponseEntity<Map<String, String>> invalidRequest(Exception exception) {
+        return ResponseEntity.badRequest().body(
+                Map.of("message", "The document request is invalid.")
+        );
+    }
+
     @ExceptionHandler(DataAccessException.class)
     public ResponseEntity<Map<String, String>> database(
-            DataAccessException exception
+            DataAccessException exception,
+            HttpServletRequest request
     ) {
         logger.error(
                 "Document library database operation failed ({}).",
                 exception.getClass().getSimpleName(),
                 exception
         );
+        String message = "PATCH".equalsIgnoreCase(request.getMethod())
+                ? "The document title could not be saved. Please retry shortly."
+                : "The document could not be removed from the library. No deletion was confirmed; retry shortly.";
         return ResponseEntity.status(HttpStatus.SERVICE_UNAVAILABLE)
                 .body(Map.of(
-                        "message",
-                        "The document could not be removed from the library. No deletion was confirmed; retry shortly."
+                        "message", message
                 ));
     }
 

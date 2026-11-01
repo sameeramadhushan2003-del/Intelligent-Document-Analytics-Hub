@@ -15,6 +15,7 @@ For safe PowerShell GET/JSON examples, `$privateHeaders` means an in-memory head
 | Method | Path | Auth | Purpose |
 | --- | --- | --- | --- |
 | GET | `/api/health` | Public | Web application health |
+| PATCH | `/api/documents/{documentId}` | ****** Update an owned document title |
 | DELETE | `/api/documents/{documentId}` | Authenticated | Delete an owned document |
 | POST | `/api/auth/register` | Public | Register an account |
 | POST | `/api/auth/login` | Public | Obtain access token |
@@ -127,6 +128,34 @@ Relevant errors: 401 invalid/missing account or JWT, 403 inactive account, 404 m
 Invoke-RestMethod -Uri 'http://localhost:8080/api/documents' -Headers $privateHeaders
 # Use an actual approved owned fixture ID instead of this illustrative 42.
 Invoke-RestMethod -Uri 'http://localhost:8080/api/documents/42' -Headers $privateHeaders
+```
+
+## Update a document title
+
+`PATCH /api/documents/42` (`DocumentLibraryController`) requires authentication and the document must belong to the JWT subject. The only accepted editable field is `title`; the user ID is never accepted from the request.
+
+```json
+{"title":"Updated appointment notes"}
+```
+
+The title must be nonblank and at most 255 characters. The service trims surrounding whitespace before persistence. A successful response is `200 OK` with the updated document metadata:
+
+```json
+{"id":42,"title":"Updated appointment notes","originalFilename":"appointments.txt","contentType":"text/plain","fileSizeBytes":47,"processingStatus":"EXTRACTED","uploadedAt":"2026-11-01T00:00:00Z"}
+```
+
+Only the display title changes. The original filename, stored file, processing status, extracted text, chunks, and embeddings are preserved. Responses do not expose the private storage key or extracted content.
+
+- `400 Bad Request`: missing, blank, malformed, or overlong title/request.
+- `401 Unauthorized`: authentication is missing or invalid.
+- `403 Forbidden`: the account is inactive or access is forbidden.
+- `404 Not Found`: the document is missing or is not owned by the caller.
+
+The document library applies its title/filename search and status filter before the selected local sort order (newest first, oldest first, or title A–Z). The API list itself returns newest uploads first.
+
+```powershell
+$titleBody = @{ title = 'Updated appointment notes' } | ConvertTo-Json
+Invoke-RestMethod -Method Patch -Uri 'http://localhost:8080/api/documents/42' -Headers $privateHeaders -ContentType 'application/json' -Body $titleBody
 ```
 
 ## Delete a document

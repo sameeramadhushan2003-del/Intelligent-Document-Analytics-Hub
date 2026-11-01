@@ -7,7 +7,24 @@ export function documentOverview(documents) {
     recent: [...documents].sort((a, b) => (Date.parse(b.uploadedAt) || 0) - (Date.parse(a.uploadedAt) || 0)).slice(0, 4) };
 }
 export function filterDocuments(documents, query, status) {
-  return documents.filter(d => (!status || d.processingStatus === status) && d.originalFilename?.toLowerCase().includes(query.toLowerCase()));
+  const search = query.toLowerCase();
+  return documents.filter(d => (!status || d.processingStatus === status) &&
+    `${d.title || ""} ${d.originalFilename || ""}`.toLowerCase().includes(search));
+}
+export function sortDocuments(documents, sortBy = "newest") {
+  return [...documents].sort((a, b) => {
+    if (sortBy === "oldest") {
+      return (Date.parse(a.uploadedAt) || 0) - (Date.parse(b.uploadedAt) || 0);
+    }
+    if (sortBy === "title") {
+      return (a.title || a.originalFilename || "").localeCompare(
+        b.title || b.originalFilename || "",
+        undefined,
+        { sensitivity: "base", numeric: true },
+      );
+    }
+    return (Date.parse(b.uploadedAt) || 0) - (Date.parse(a.uploadedAt) || 0);
+  });
 }
 export function validateUpload(file) {
   if (!file) return "Please select a document first.";

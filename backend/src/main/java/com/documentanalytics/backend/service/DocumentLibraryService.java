@@ -123,4 +123,26 @@ public class DocumentLibraryService {
                         )
                 );
     }
+
+    @Transactional
+    public Document updateMyDocumentTitle(
+            Long documentId,
+            Long authenticatedUserId,
+            String title
+    ) {
+        Document document = getMyDocumentForUpdate(
+                documentId,
+                authenticatedUserId
+        );
+
+        if (title == null || title.isBlank() || title.length() > 255) {
+            throw new ResponseStatusException(
+                    HttpStatus.BAD_REQUEST,
+                    "The document title must contain 1 to 255 characters."
+            );
+        }
+
+        document.setTitle(title.trim());
+        return documentRepository.save(document);
+    }
 }

@@ -2,13 +2,13 @@
 import { useEffect, useRef, useState } from "react";
 import { useSearchParams } from "react-router";
 import Icon from "../components/Icon.jsx";
-import { filterDocuments, validateUpload } from "../utils/documents.js";
+import { filterDocuments, sortDocuments, validateUpload } from "../utils/documents.js";
 import {
   deleteDocument,
   removeDeletedDocument,
   runDeleteOnce,
 } from "../utils/documentDeletion.js";
-import { refreshDocuments } from "../utils/documentLibraryApi.js";
+import { refreshDocuments, updateDocumentTitle } from "../utils/documentLibraryApi.js";
 import { embeddingErrorMessage } from "../utils/documentEmbeddings.js";
 import { useAuth } from "../context/authContext.js";
 import "./Documents.css";
@@ -54,6 +54,7 @@ function Documents() {
   const [searchParams, setSearchParams] = useSearchParams();
   const [query, setQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
+  const [sortOrder, setSortOrder] = useState("newest");
   const [dragging, setDragging] = useState(false);
   const actionRef = useRef(false);
   const uploadRef = useRef(false);
@@ -84,11 +85,20 @@ function Documents() {
   const deleteDialogRef = useRef(null);
   const deleteCancelRef = useRef(null);
   const deleteTriggerRef = useRef(null);
+  const editDialogRef = useRef(null);
+  const editTitleRef = useRef(null);
+  const editTriggerRef = useRef(null);
+  const editDialogWasOpenRef = useRef(false);
+  const editRequestRef = useRef(false);
   const libraryHeadingRef = useRef(null);
   const focusAfterCloseRef = useRef(null);
   const dialogWasOpenRef = useRef(false);
   const deleteRequestRef = useRef(false);
   const [confirmingDelete, setConfirmingDelete] = useState(null);
+  const [editingDocument, setEditingDocument] = useState(null);
+  const [editTitle, setEditTitle] = useState("");
+  const [savingDocumentId, setSavingDocumentId] = useState(null);
+  const [editError, setEditError] = useState("");
   const [deletingDocumentId, setDeletingDocumentId] = useState(null);
   const [deleteError, setDeleteError] = useState("");
   const [toast, setToast] = useState(null);
@@ -114,11 +124,69 @@ function Documents() {
     }
   }, [confirmingDelete]);
 
+  useEffect(() => {
+    const dialog = editDialogRef.current;
+    if (editingDocument) {
+      if (!dialog.open) dialog.showModal();
+      editDialogWasOpenRef.current = true;
+      editTitleRef.current?.focus();
+    } else if (editDialogWasOpenRef.current) {
+      if (dialog.open) dialog.close();
+      editDialogWasOpenRef.current = false;
+      const returnFocus = editTriggerRef.current?.isConnected
+        ? editTriggerRef.current
+        : libraryHeadingRef.current;
+      returnFocus?.focus();
+    }
+  }, [editingDocument]);
+
   function requestDocumentDeletion(document, event) {
     deleteTriggerRef.current = event.currentTarget;
     focusAfterCloseRef.current = null;
     setDeleteError("");
     setConfirmingDelete(document);
+  }
+
+  function requestDocumentEdit(document, event) {
+    editTriggerRef.current = event.currentTarget;
+    setEditError("");
+    setEditTitle(document.title || "");
+    setEditingDocument(document);
+  }
+
+  async function handleSaveDocumentTitle(event) {
+    event.preventDefault();
+    if (!editingDocument || editRequestRef.current) return;
+
+    const title = editTitle.trim();
+    if (!title || editTitle.length > 255) {
+      setEditError(!title
+        ? "A title is required."
+        : "Titles can be no longer than 255 characters.");
+      return;
+    }
+
+    editRequestRef.current = true;
+    setSavingDocumentId(editingDocument.id);
+    setEditError("");
+    try {
+      const updatedDocument = await updateDocumentTitle(
+        editingDocument.id,
+        title,
+        accessToken
+      );
+      setDocuments(current => current.map(document =>
+        document.id === updatedDocument.id ? updatedDocument : document
+      ));
+      setRefreshKey(current => current + 1);
+      setToast({ type: "success", message: "Document title updated." });
+      setEditingDocument(null);
+    } catch (saveError) {
+      setEditError(saveError.message || "The document title could not be updated.");
+    } finally {
+      editRequestRef.current = false;
+      setSavingDocumentId(null);
+    }
   }
 
   async function confirmDocumentDeletion() {
@@ -487,8 +555,13 @@ function Documents() {
 
 
 
-  const busy = uploading || processingDocumentId !== null || generatingDocumentId !== null || generatingEmbeddingDocumentId !== null;
-  const visible = filterDocuments(documents, query, statusFilter);
+  const busy = uploading || processingDocumentId !== null || generatingDocumentId !== null || generatingEmbeddingDocumentId !== null || savingDocumentId !== null;
+  const visible = sortDocuments(filterDocuments(documents, query, statusFilter), sortOrder);
+  const titleValidation = !editTitle.trim()
+    ? "A title is required."
+    : editTitle.length > 255
+      ? "Titles can be no longer than 255 characters."
+      : "";
   function selectFile(file) {
     const message = validateUpload(file);
     setError(message); setSuccess("");
@@ -528,14 +601,30 @@ function Documents() {
     </ol>
     {toast && <div className={`document-toast ${toast.type}`} role={toast.type === "error" ? "alert" : "status"}><Icon name={toast.type === "success" ? "check" : "close"} size={16} /><span>{toast.message}</span><button type="button" onClick={() => setToast(null)} aria-label="Dismiss notification"><Icon name="close" size={15} /></button></div>}
     <section className="documents-library-section surface"><div className="section-heading"><div><h2 ref={libraryHeadingRef} tabIndex={-1}>Your library <span className="count-badge">{documents.length}</span></h2><p>Prepare a document, then follow your questions.</p></div><button type="button" className="btn btn-outline btn-small" disabled={loading || busy} onClick={() => setRefreshKey(value => value + 1)}>Refresh library</button></div>
-      <div className="library-filters"><label className="search-field"><Icon name="search" size={18} /><input value={query} onChange={event => setQuery(event.target.value)} placeholder="Find a document by name..." aria-label="Filter documents by filename" /></label><label className="sr-only" htmlFor="status-filter">Filter by processing status</label><select id="status-filter" value={statusFilter} onChange={event => setStatusFilter(event.target.value)}><option value="">All statuses</option>{["UPLOADED", "EXTRACTED", "INDEXED", "PROCESSING", "FAILED"].map(value => <option key={value} value={value}>{value}</option>)}</select></div>
+      <div className="library-filters"><label className="search-field"><Icon name="search" size={18} /><input value={query} onChange={event => setQuery(event.target.value)} placeholder="Find a title or filename..." aria-label="Filter documents by title or original filename" /></label><label className="sr-only" htmlFor="status-filter">Filter by processing status</label><select id="status-filter" value={statusFilter} onChange={event => setStatusFilter(event.target.value)}><option value="">All statuses</option>{["UPLOADED", "EXTRACTED", "INDEXED", "PROCESSING", "FAILED"].map(value => <option key={value} value={value}>{value}</option>)}</select><label className="sr-only" htmlFor="document-sort">Sort documents</label><select id="document-sort" value={sortOrder} onChange={event => setSortOrder(event.target.value)}><option value="newest">Newest first</option><option value="oldest">Oldest first</option><option value="title">Title A-Z</option></select></div>
       {searchParams.get("tool") && <p className="notice">Choose {searchParams.get("tool") === "ask" ? "Ask AI" : "Search"} beside a prepared document below. Embeddings are required.</p>}
       {processMessage && <p className="notice" role="status">{processMessage}</p>}
-      {loading ? <div role="status" aria-label="Loading your documents"><div className="skeleton" /><div className="skeleton" /><div className="skeleton" /></div> : visible.length === 0 ? <div className="empty-state"><Icon name="file" size={36} /><h3>{documents.length ? "No matching documents" : "A blank page. A new possibility."}</h3><p>{documents.length ? "Try a different name or status filter." : "Upload your first document above. We'll help you find the context within."}</p>{documents.length > 0 && <button className="btn btn-outline" onClick={() => { setQuery(""); setStatusFilter(""); }}>Clear filters</button>}</div> : <div className="documents-table-wrapper"><table className="documents-table"><thead><tr><th>Document</th><th>Status</th><th>Uploaded</th><th>Prepare & explore</th></tr></thead><tbody>{visible.map(document => <tr key={document.id} className={searchParams.get("document") === String(document.id) ? "selected-row" : ""}><td><span className="mobile-cell-label">Document</span><div className="document-cell"><span className={`file-badge ${document.originalFilename?.split(".").at(-1)?.toLowerCase()}`}>{document.originalFilename?.split(".").at(-1)?.toUpperCase()}</span><span className="document-name"><strong title={document.originalFilename}>{document.originalFilename}</strong><small>{formatFileSize(document.fileSizeBytes)} | #{document.id}</small></span></div></td><td><span className="mobile-cell-label">Status</span><DocumentStatus status={document.processingStatus} /></td><td className="date-cell"><span className="mobile-cell-label">Uploaded</span>{document.uploadedAt ? new Date(document.uploadedAt).toLocaleDateString() : "Unavailable"}</td><td><span className="mobile-cell-label">Actions</span><div className="document-actions"><button disabled={busy} onClick={() => handleProcessDocument(document.id)}><Icon name="file" size={16} />{processingDocumentId === document.id ? "Extracting..." : "Extract"}</button><button disabled={busy || !["EXTRACTED", "INDEXED"].includes(document.processingStatus)} onClick={() => handleGenerateChunks(document.id)}><Icon name="layers" size={16} />{generatingDocumentId === document.id ? "Generating..." : "Chunks"}</button><button disabled={busy || !["EXTRACTED", "INDEXED"].includes(document.processingStatus)} onClick={() => handleGenerateEmbeddings(document.id)}><Icon name="spark" size={16} />{generatingEmbeddingDocumentId === document.id ? "Generating..." : "Embeddings"}</button><button disabled={busy || !["EXTRACTED", "INDEXED"].includes(document.processingStatus)} aria-expanded={searchDocumentId === document.id} onClick={() => setSearchDocumentId(current => current === document.id ? null : document.id)}><Icon name="search" size={16} />{searchDocumentId === document.id ? "Close search" : "Search"}</button><button className="ask-action" disabled={busy} aria-expanded={askDocumentId === document.id} aria-controls={askDocumentId === document.id ? "document-ask-panel" : undefined} onClick={event => { askActionRef.current = event.currentTarget; setAskDocumentId(current => current === document.id ? null : document.id); }}><Icon name="spark" size={16} />{askDocumentId === document.id ? "Close AI" : "Ask AI"}</button><button className="delete-action" disabled={busy || deletingDocumentId !== null} onClick={event => requestDocumentDeletion(document, event)} aria-label={`Delete ${document.originalFilename}`}><Icon name="trash" size={16} />Delete</button></div></td></tr>)}</tbody></table></div>}
+      {loading ? <div role="status" aria-label="Loading your documents"><div className="skeleton" /><div className="skeleton" /><div className="skeleton" /></div> : visible.length === 0 ? <div className="empty-state"><Icon name="file" size={36} /><h3>{documents.length ? "No matching documents" : "A blank page. A new possibility."}</h3><p>{documents.length ? "Try a different name or status filter." : "Upload your first document above. We'll help you find the context within."}</p>{documents.length > 0 && <button className="btn btn-outline" onClick={() => { setQuery(""); setStatusFilter(""); }}>Clear filters</button>}</div> : <div className="documents-table-wrapper"><table className="documents-table"><thead><tr><th>Title / original file</th><th>Status</th><th>Uploaded</th><th>Prepare & explore</th></tr></thead><tbody>{visible.map(document => <tr key={document.id} className={searchParams.get("document") === String(document.id) ? "selected-row" : ""}><td><span className="mobile-cell-label">Document</span><div className="document-cell"><span className={`file-badge ${document.originalFilename?.split(".").at(-1)?.toLowerCase()}`}>{document.originalFilename?.split(".").at(-1)?.toUpperCase()}</span><span className="document-name"><strong title={document.title || document.originalFilename}>{document.title || document.originalFilename}</strong><small title={document.originalFilename}>{document.originalFilename} · {formatFileSize(document.fileSizeBytes)} | #{document.id}</small></span></div></td><td><span className="mobile-cell-label">Status</span><DocumentStatus status={document.processingStatus} /></td><td className="date-cell"><span className="mobile-cell-label">Uploaded</span>{document.uploadedAt ? new Date(document.uploadedAt).toLocaleDateString() : "Unavailable"}</td><td><span className="mobile-cell-label">Actions</span><div className="document-actions"><button type="button" disabled={busy} onClick={event => requestDocumentEdit(document, event)} aria-label={`Edit title for ${document.title || document.originalFilename}`}><Icon name="file" size={16} />Edit title</button><button type="button" disabled={busy} onClick={() => handleProcessDocument(document.id)}><Icon name="file" size={16} />{processingDocumentId === document.id ? "Extracting..." : "Extract"}</button><button type="button" disabled={busy || !["EXTRACTED", "INDEXED"].includes(document.processingStatus)} onClick={() => handleGenerateChunks(document.id)}><Icon name="layers" size={16} />{generatingDocumentId === document.id ? "Generating..." : "Chunks"}</button><button type="button" disabled={busy || !["EXTRACTED", "INDEXED"].includes(document.processingStatus)} onClick={() => handleGenerateEmbeddings(document.id)}><Icon name="spark" size={16} />{generatingEmbeddingDocumentId === document.id ? "Generating..." : "Embeddings"}</button><button type="button" disabled={busy || !["EXTRACTED", "INDEXED"].includes(document.processingStatus)} aria-expanded={searchDocumentId === document.id} onClick={() => setSearchDocumentId(current => current === document.id ? null : document.id)}><Icon name="search" size={16} />{searchDocumentId === document.id ? "Close search" : "Search"}</button><button type="button" className="ask-action" disabled={busy} aria-expanded={askDocumentId === document.id} aria-controls={askDocumentId === document.id ? "document-ask-panel" : undefined} onClick={event => { askActionRef.current = event.currentTarget; setAskDocumentId(current => current === document.id ? null : document.id); }}><Icon name="spark" size={16} />{askDocumentId === document.id ? "Close AI" : "Ask AI"}</button><button type="button" className="delete-action" disabled={busy || deletingDocumentId !== null} onClick={event => requestDocumentDeletion(document, event)} aria-label={`Delete ${document.originalFilename}`}><Icon name="trash" size={16} />Delete</button></div></td></tr>)}</tbody></table></div>}
       <p className="library-footnote"><Icon name="layers" size={14} /> Preparation order: Extract &rarr; Chunks &rarr; Embeddings. Status reflects extraction; it does not confirm embeddings exist.</p>
     </section>
     {searchDocumentId !== null && documents.some(document => document.id === searchDocumentId) && <DocumentSemanticSearch key={searchDocumentId} documentId={searchDocumentId} accessToken={accessToken} />}
     {askDocumentId !== null && documents.some(document => document.id === askDocumentId) && <div id="document-ask-panel"><DocumentRagAnswer documentId={askDocumentId} documentName={documents.find(document => document.id === askDocumentId)?.originalFilename} accessToken={accessToken} onClose={closeAskAI} /></div>}
+    <dialog ref={editDialogRef} className="edit-dialog" aria-labelledby="edit-dialog-title" aria-describedby="edit-dialog-description" onCancel={event => { event.preventDefault(); if (savingDocumentId === null) setEditingDocument(null); }}>
+      {editingDocument && <form onSubmit={handleSaveDocumentTitle}>
+        <span className="edit-dialog-icon"><Icon name="file" size={22} /></span>
+        <span className="eyebrow">EDIT DOCUMENT DETAILS</span>
+        <h2 id="edit-dialog-title">Edit document title</h2>
+        <p id="edit-dialog-description">Change the title shown in your library. The original filename and uploaded file will stay unchanged.</p>
+        <label htmlFor="document-title">Document title</label>
+        <input ref={editTitleRef} id="document-title" name="title" value={editTitle} maxLength={255} aria-invalid={Boolean(editError || titleValidation)} aria-describedby={editError || titleValidation ? "edit-title-error" : "edit-title-count"} onChange={event => { setEditTitle(event.target.value); setEditError(""); }} disabled={savingDocumentId !== null} />
+        <div className="edit-dialog-meta"><span id="edit-title-count">{editTitle.length}/255 characters</span><span className="edit-dialog-filename">Original file: {editingDocument.originalFilename}</span></div>
+        {(editError || titleValidation) && <p id="edit-title-error" className="edit-dialog-error" role="alert">{editError || titleValidation}</p>}
+        <div className="edit-dialog-actions">
+          <button type="button" className="btn btn-outline" disabled={savingDocumentId !== null} onClick={() => setEditingDocument(null)}>Cancel</button>
+          <button type="submit" className="btn btn-primary" disabled={savingDocumentId !== null || Boolean(titleValidation)}>{savingDocumentId !== null ? <><span className="loader" /> Saving…</> : "Save title"}</button>
+        </div>
+      </form>}
+    </dialog>
     <dialog ref={deleteDialogRef} className="delete-dialog" aria-labelledby="delete-dialog-title" aria-describedby="delete-dialog-description" onKeyDown={(event) => { if (event.key === "Escape" && deletingDocumentId === null) { event.preventDefault(); setConfirmingDelete(null); } }} onCancel={(event) => { event.preventDefault(); if (deletingDocumentId === null) setConfirmingDelete(null); }}>
       {confirmingDelete && <><span className="delete-dialog-icon"><Icon name="trash" size={22} /></span><span className="eyebrow">REMOVE FROM YOUR WORKSPACE</span><h2 id="delete-dialog-title">Delete this document?</h2><p className="delete-file-name">{confirmingDelete.originalFilename}</p><p id="delete-dialog-description">This permanently removes the original file, extracted text, chunks, and saved embeddings from your workspace. This action cannot be undone.</p>{deleteError && <p className="delete-dialog-error" role="alert">{deleteError}</p>}<div className="delete-dialog-actions"><button ref={deleteCancelRef} type="button" className="btn btn-outline" disabled={deletingDocumentId !== null} onClick={() => setConfirmingDelete(null)}>Cancel</button><button type="button" className="btn btn-danger" disabled={deletingDocumentId !== null} onClick={confirmDocumentDeletion}>{deletingDocumentId !== null ? <><span className="loader" /> Deleting…</> : <><Icon name="trash" size={16} /> Confirm delete</>}</button></div></>}
     </dialog>

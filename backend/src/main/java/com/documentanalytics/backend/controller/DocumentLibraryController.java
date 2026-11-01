@@ -2,14 +2,17 @@
 package com.documentanalytics.backend.controller;
 
 import com.documentanalytics.backend.dto.DocumentResponse;
+import com.documentanalytics.backend.dto.UpdateDocumentTitleRequest;
 import com.documentanalytics.backend.entity.Document;
 import com.documentanalytics.backend.service.DocumentLibraryService;
 
+import jakarta.validation.Valid;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.server.ResponseStatusException;
 import com.documentanalytics.backend.service.DocumentDeletionService;
 
 import java.util.List;
@@ -61,6 +64,21 @@ public class DocumentLibraryController {
         return toResponse(document);
     }
 
+    @PatchMapping("/{documentId}")
+    public DocumentResponse updateMyDocumentTitle(
+            @PathVariable Long documentId,
+            @Valid @RequestBody UpdateDocumentTitleRequest request,
+            @AuthenticationPrincipal Jwt jwt
+    ) {
+        Long userId = authenticatedUserId(jwt);
+        Document document = documentLibraryService.updateMyDocumentTitle(
+                documentId,
+                userId,
+                request.title()
+        );
+        return toResponse(document);
+    }
+
     @DeleteMapping("/{documentId}")
     public ResponseEntity<?> deleteMyDocument(
             @PathVariable Long documentId,
@@ -88,6 +106,24 @@ public class DocumentLibraryController {
             );
         }
         return ResponseEntity.noContent().build();
+    }
+
+    private Long authenticatedUserId(Jwt jwt) {
+        if (jwt == null || jwt.getSubject() == null) {
+            throw new ResponseStatusException(
+                    HttpStatus.UNAUTHORIZED,
+                    "Authentication is required."
+            );
+        }
+
+        try {
+            return Long.valueOf(jwt.getSubject());
+        } catch (NumberFormatException exception) {
+            throw new ResponseStatusException(
+                    HttpStatus.UNAUTHORIZED,
+                    "Authentication is required."
+            );
+        }
     }
 
     public record DeleteDocumentResponse(

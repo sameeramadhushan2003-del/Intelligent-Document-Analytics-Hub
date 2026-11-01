@@ -8,7 +8,7 @@
     "build": "vite build",
     "lint": "eslint .",
     "preview": "vite preview",
-    "test": "node --test src/context/authSession.test.mjs src/context/themePreference.test.mjs src/utils/documents.test.mjs src/utils/documentDeletion.test.mjs src/utils/documentEmbeddings.test.mjs src/components/ragAnswerRequest.test.mjs"
+    "test": "node --test src/context/authSession.test.mjs src/context/themePreference.test.mjs src/utils/documents.test.mjs src/utils/documentLibraryApi.test.mjs src/utils/documentDeletion.test.mjs src/utils/documentEmbeddings.test.mjs src/components/ragAnswerRequest.test.mjs"
   },
   "dependencies": {
     "react": "^19.2.8",

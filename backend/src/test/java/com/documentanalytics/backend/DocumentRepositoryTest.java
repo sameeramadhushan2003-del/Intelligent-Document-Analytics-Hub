@@ -58,4 +58,30 @@ class DocumentRepositoryTest {
 
         assertNotNull(retrievedDocument.getUploadedAt());
     }
+
+    @Test
+    void changingTitlePersistsWithoutChangingOriginalFileOrProcessingMetadata() {
+        Document document = new Document(
+                "Original title",
+                "unchanged-original.pdf",
+                "application/pdf",
+                250000
+        );
+        document.setStorageKey("synthetic-storage-key");
+        document.setSha256Hex("synthetic-hash");
+        Document saved = documentRepository.saveAndFlush(document);
+
+        saved.setTitle("Updated title");
+        documentRepository.saveAndFlush(saved);
+        entityManager.clear();
+
+        Document updated = documentRepository.findById(saved.getId()).orElseThrow();
+        assertEquals("Updated title", updated.getTitle());
+        assertEquals("unchanged-original.pdf", updated.getOriginalFilename());
+        assertEquals("application/pdf", updated.getContentType());
+        assertEquals(250000L, updated.getFileSizeBytes());
+        assertEquals("synthetic-storage-key", updated.getStorageKey());
+        assertEquals("synthetic-hash", updated.getSha256Hex());
+        assertEquals(DocumentStatus.UPLOADED, updated.getProcessingStatus());
+    }
 }

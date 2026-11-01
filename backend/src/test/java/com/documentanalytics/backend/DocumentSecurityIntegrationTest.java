@@ -4,6 +4,7 @@ import com.documentanalytics.backend.config.SecurityConfig;
 import com.documentanalytics.backend.controller.*;
 import com.documentanalytics.backend.entity.AppUser;
 import com.documentanalytics.backend.entity.Document;
+import com.documentanalytics.backend.entity.DocumentStatus;
 import com.documentanalytics.backend.exception.DocumentEmbeddingExceptionHandler;
 import com.documentanalytics.backend.exception.DocumentLibraryExceptionHandler;
 import com.documentanalytics.backend.exception.DocumentRagExceptionHandler;
@@ -82,7 +83,8 @@ class DocumentSecurityIntegrationTest {
             post("/api/documents/79/search").contentType(MediaType.APPLICATION_JSON).content("{\"query\":\"How?\"}"),
             post("/api/documents/79/ask").contentType(MediaType.APPLICATION_JSON).content("{\"question\":\"How?\",\"userId\":999}"),
             delete("/api/documents/79"),
-            multipart("/api/documents/upload").file(new MockMultipartFile("file", "test.txt", "text/plain", new byte[]{65}))
+            multipart("/api/documents/upload").file(new MockMultipartFile("file", "test.txt", "text/plain", new byte[]{65})),
+            patch("/api/documents/79").contentType(MediaType.APPLICATION_JSON).content("{\"title\":\"Updated title\"}")
         };
     }
 
@@ -193,6 +195,77 @@ class DocumentSecurityIntegrationTest {
                 TransactionSynchronizationManager.clearSynchronization();
             }
         }
+    }
+
+    @Test
+    void ownerCanUpdateOnlyTheDocumentTitle() throws Exception {
+        Document document = mock(Document.class);
+        when(document.getId()).thenReturn(79L);
+        when(document.getTitle()).thenReturn("Updated title");
+        when(document.getOriginalFilename()).thenReturn("original.pdf");
+        when(document.getContentType()).thenReturn("application/pdf");
+        when(document.getFileSizeBytes()).thenReturn(123L);
+        when(document.getProcessingStatus()).thenReturn(DocumentStatus.UPLOADED);
+        when(document.getUploadedAt()).thenReturn(Instant.parse("2026-01-01T00:00:00Z"));
+        when(context.getBean(DocumentRepository.class)
+                .findByIdAndOwnerUserIdForUpdate(79L, 7L))
+                .thenReturn(Optional.of(document));
+        when(context.getBean(DocumentRepository.class).save(document))
+                .thenReturn(document);
+
+        String bearer = token(
+                "7",
+                Instant.now().plusSeconds(900),
+                "document-analytics-hub"
+        );
+        mvc.perform(patch("/api/documents/79")
+                        .header("Authorization", "Bearer " + bearer)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"title\":\"Updated title\"}"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.title").value("Updated title"))
+                .andExpect(jsonPath("$.originalFilename").value("original.pdf"))
+                .andExpect(jsonPath("$.processingStatus").value("UPLOADED"));
+
+        verify(document).setTitle("Updated title");
+        verify(context.getBean(DocumentRepository.class)).save(document);
+        verify(document, never()).setOriginalFilename(anyString());
+        verify(document, never()).setContentType(anyString());
+        verify(document, never()).setFileSizeBytes(anyLong());
+        verify(document, never()).setProcessingStatus(any());
+        noPrivateWork();
+    }
+
+    @Test
+    void titleUpdateRejectsInvalidInputAndHidesMissingOrUnownedDocuments() throws Exception {
+        String bearer = token(
+                "7",
+                Instant.now().plusSeconds(900),
+                "document-analytics-hub"
+        );
+        var repository = context.getBean(DocumentRepository.class);
+        when(repository.findByIdAndOwnerUserIdForUpdate(79L, 7L))
+                .thenReturn(Optional.empty());
+
+        for (String title : new String[]{"", "   ", "x".repeat(256)}) {
+            mvc.perform(patch("/api/documents/79")
+                            .header("Authorization", "Bearer " + bearer)
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .content("{\"title\":\"" + title + "\"}"))
+                    .andExpect(status().isBadRequest())
+                    .andExpect(jsonPath("$.message").exists());
+        }
+
+        mvc.perform(patch("/api/documents/79")
+                        .header("Authorization", "Bearer " + bearer)
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("{\"title\":\"Valid title\"}"))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.message").exists());
+
+        verify(repository, times(1)).findByIdAndOwnerUserIdForUpdate(79L, 7L);
+        verify(repository, never()).save(any());
+        noPrivateWork();
     }
 
     @Configuration
