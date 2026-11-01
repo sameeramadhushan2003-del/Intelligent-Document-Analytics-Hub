@@ -92,6 +92,13 @@ class OllamaChatServiceTest {
                 "{\"message\":{\"content\":\"The orbital period of Neptune is 164 years.\"}}", MediaType.APPLICATION_JSON));
         assertEquals("I could not find that information in the document.",
                 service.generateAnswer("What is Neptune's orbital period?", "Patients call reception."));
+        server.reset();
+        server.expect(anything()).andRespond(withSuccess(
+                "{\"message\":{\"content\":\"The records assistant calculates the quarterly tax liability.\"}}",
+                MediaType.APPLICATION_JSON));
+        assertEquals("I could not find that information in the document.",
+                service.generateAnswer("What is the quarterly tax liability?",
+                        "The records assistant maintains the inventory spreadsheet."));
     }
 
     @Test
@@ -120,6 +127,38 @@ class OllamaChatServiceTest {
     }
 
     @Test
+    void acceptsASupportedNaturalLanguageParaphrase() {
+        String passage = "The records assistant maintains the inventory spreadsheet.";
+        String answer = "The records assistant is responsible for keeping the inventory spreadsheet current.";
+        server.expect(anything()).andRespond(withSuccess(
+                "{\"message\":{\"content\":\"" + answer + "\"}}",
+                MediaType.APPLICATION_JSON));
+        assertEquals(answer, service.generateAnswer(
+                "Who is responsible for keeping the book records up to date?",
+                "[Source 1 | Chunk 4]\n" + passage));
+    }
+
+    @Test
+    void acceptsMinorFormattingChangesAndReturnsTheOriginalPassage() {
+        String passage = "The records assistant maintains the inventory spreadsheet.";
+        server.expect(anything()).andRespond(withSuccess(
+                "{\"message\":{\"content\":\"THE records assistant maintains the inventory spreadsheet !\"}}",
+                MediaType.APPLICATION_JSON));
+        assertEquals(passage, service.generateAnswer("Who maintains the records?",
+                "[Source 1 | Chunk 4]\n" + passage));
+    }
+
+    @Test
+    void returnsFallbackForAnUnrelatedQuestionAndUnsupportedAnswer() {
+        server.expect(anything()).andRespond(withSuccess(
+                "{\"message\":{\"content\":\"The records assistant calculates the quarterly tax liability.\"}}",
+                MediaType.APPLICATION_JSON));
+        assertEquals("I could not find that information in the document.",
+                service.generateAnswer("What is the quarterly tax liability?",
+                        "[Source 1 | Chunk 4]\nThe records assistant maintains the inventory spreadsheet."));
+    }
+
+    @Test
     void rejectsQuotedFabricationAndQuotedInjectionRequests() {
         server.expect(anything()).andRespond(withSuccess(
                 "{\"message\":{\"content\":\"Evidence: \\\"Appointments are always free of charge.\\\"\"}}", MediaType.APPLICATION_JSON));
@@ -131,10 +170,22 @@ class OllamaChatServiceTest {
     @EnabledIfSystemProperty(named = "run.ollama.integration", matches = "true")
     void optionalLiveSyntheticAnswer() {
         var live = new OllamaChatService("http://localhost:11434");
-        assertTrue(live.generateAnswer("How do patients book appointments?",
-                "Patients book appointments by calling reception.").toLowerCase().contains("reception"));
+        String recordsAnswer = live.generateAnswer(
+                "Who is responsible for keeping the book records up to date?",
+                "[Source 1 | Chunk 4]\nThe records assistant maintains the inventory spreadsheet.");
+        assertTrue(recordsAnswer.toLowerCase().contains("records assistant"), recordsAnswer);
+        assertNotEquals("The records assistant maintains the inventory spreadsheet.", recordsAnswer);
+
+        String milestones = live.generateAnswer("Summarize the three project milestones.",
+                "[Source 1 | Chunk 1]\nMilestone 1: The team completed document upload and text extraction in January.\n\n"
+                + "[Source 2 | Chunk 2]\nMilestone 2: Semantic search with vector embeddings launched in March.\n\n"
+                + "[Source 3 | Chunk 3]\nMilestone 3: Ask AI RAG with source citations was released in June.");
+        assertNotEquals("I could not find that information in the document.", milestones, milestones);
+
         assertEquals("I could not find that information in the document.",
                 live.generateAnswer("What is Neptune's orbital period?",
-                        "Patients book appointments by calling reception."));
+                        "[Source 1 | Chunk 1]\nMilestone 1: The team completed document upload and text extraction in January.\n\n"
+                        + "[Source 2 | Chunk 2]\nMilestone 2: Semantic search with vector embeddings launched in March.\n\n"
+                        + "[Source 3 | Chunk 3]\nMilestone 3: Ask AI RAG with source citations was released in June."));
     }
 }

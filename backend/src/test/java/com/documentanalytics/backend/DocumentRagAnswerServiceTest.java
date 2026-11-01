@@ -4,6 +4,7 @@ import com.documentanalytics.backend.repository.DocumentSemanticSearchRepository
 import com.documentanalytics.backend.repository.DocumentSemanticSearchRepository.SimilarChunk;
 import com.documentanalytics.backend.service.*;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.condition.EnabledIfSystemProperty;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.server.ResponseStatusException;
 
@@ -40,6 +41,53 @@ class DocumentRagAnswerServiceTest {
         assertEquals("qwen2.5:0.5b", result.model());
         assertEquals(1, result.sources().size());
         assertEquals(0.8, result.sources().getFirst().similarityScore());
+    }
+
+    @Test
+    void answersTheSampleRecordsQuestionWithItsRetrievedSourceMetadata() {
+        String passage = "The records assistant maintains the inventory spreadsheet.";
+        String exactQuestion = "Who is responsible for keeping the book records up to date?";
+        String paraphrasedQuestion = "Who keeps the records in the book inventory current?";
+        var chunk = new SimilarChunk(84L, 42L, 4, passage, 0.87);
+        when(search.searchDocument(42L, 7L, exactQuestion, 3)).thenReturn(List.of(chunk));
+        when(search.searchDocument(42L, 7L, paraphrasedQuestion, 3)).thenReturn(List.of(chunk));
+        when(chat.generateAnswer(eq(exactQuestion), contains(passage))).thenReturn(passage);
+        when(chat.generateAnswer(eq(paraphrasedQuestion), contains(passage))).thenReturn(passage);
+        when(chat.getModelName()).thenReturn("qwen2.5:0.5b");
+
+        for (String question : List.of(exactQuestion, paraphrasedQuestion)) {
+            var result = service.answerDocument(42L, 7L, question);
+            assertEquals(passage, result.answer());
+            assertEquals(42L, result.documentId());
+            assertEquals(question, result.question());
+            assertEquals("qwen2.5:0.5b", result.model());
+            assertEquals(1, result.sources().size());
+            assertEquals(84L, result.sources().getFirst().chunkId());
+            assertEquals(4, result.sources().getFirst().chunkIndex());
+            assertEquals(passage, result.sources().getFirst().chunkText());
+            assertEquals(0.87, result.sources().getFirst().similarityScore());
+        }
+    }
+
+    @Test
+    @EnabledIfSystemProperty(named = "run.ollama.integration", matches = "true")
+    void answersLiveModelQuestionsAndPreservesRetrievedSourceCitations() {
+        var records = new SimilarChunk(84L, 42L, 4,
+                "The records assistant maintains the inventory spreadsheet.", 0.87);
+        when(search.searchDocument(42L, 7L,
+                "Who is responsible for keeping the book records up to date?", 3))
+                .thenReturn(List.of(records));
+
+        var liveService = new DocumentRagAnswerService(search, new OllamaChatService("http://localhost:11434"));
+        var answer = liveService.answerDocument(42L, 7L,
+                "Who is responsible for keeping the book records up to date?");
+        assertTrue(answer.answer().toLowerCase().contains("records assistant"), answer.answer());
+        assertNotEquals(records.chunkText(), answer.answer());
+        assertEquals(42L, answer.documentId());
+        assertEquals(84L, answer.sources().getFirst().chunkId());
+        assertEquals(4, answer.sources().getFirst().chunkIndex());
+        assertEquals(records.chunkText(), answer.sources().getFirst().chunkText());
+        assertEquals(0.87, answer.sources().getFirst().similarityScore());
     }
 
     @Test
