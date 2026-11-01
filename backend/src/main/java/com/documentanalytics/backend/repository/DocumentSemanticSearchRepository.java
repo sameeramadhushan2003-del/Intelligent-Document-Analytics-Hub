@@ -69,19 +69,23 @@ public class DocumentSemanticSearchRepository {
                   AND e.embedding_model = ?
                   AND e.embedding_dimensions = ?
                 ORDER BY cosine_distance ASC NULLS LAST,
-                         c.chunk_index ASC
+                         c.chunk_index ASC, c.id ASC
                 LIMIT ?
                 """;
 
         return jdbcTemplate.query(
                 sql,
-                (rs, rowNum) -> new SimilarChunk(
+                (rs, rowNum) -> {
+                    double distance = rs.getDouble("cosine_distance");
+                    double similarity = rs.wasNull() ? Double.NaN : 1.0 - distance;
+                    return new SimilarChunk(
                         rs.getLong("chunk_id"),
                         rs.getLong("document_id"),
                         rs.getInt("chunk_index"),
                         rs.getString("chunk_text"),
-                        1.0 - rs.getDouble("cosine_distance")
-                ),
+                        similarity
+                    );
+                },
                 vectorValue,
                 documentId,
                 modelName.trim(),

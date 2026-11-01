@@ -1,138 +1,50 @@
-import FeatureCard from '../components/FeatureCard.jsx'
-
-function Home() {
-  const features = [
-    {
-      icon: '📄',
-      title: 'Document Management',
-      description:
-        'Upload, organize, and manage your documents in one secure workspace.',
-    },
-    {
-      icon: '🧠',
-      title: 'AI-Powered Questions',
-      description:
-        'Ask questions using natural language and discover relevant information.',
-    },
-    {
-      icon: '📊',
-      title: 'Document Analytics',
-      description:
-        'Explore document usage, important topics, and knowledge gaps.',
-    },
-  ]
-
-  return (
-    <div className="app">
-
-
-      <main>
-        {/* Hero section */}
-        <section id="home" className="hero">
-          <div className="hero-content">
-            <span className="tag">RAG-Powered Document Intelligence</span>
-
-            <h1>
-              Understand Your Documents
-              <span className="highlight"> With AI</span>
-            </h1>
-
-            <p className="hero-description">
-              Transform complex documents into useful knowledge.
-              Search, summarize, and get evidence-based answers
-              using intelligent document analysis.
-            </p>
-
-            <div className="hero-actions">
-              <a href="#features" className="btn btn-primary">
-                Explore Features
-              </a>
-              <a href="#workflow" className="btn btn-outline">
-                How It Works
-              </a>
-            </div>
-          </div>
-
-          {/* Sample answer card */}
-          <div className="preview-card">
-            <span className="preview-label">Example AI Response</span>
-
-            <p className="preview-question">
-              What is Retrieval-Augmented Generation?
-            </p>
-
-            <div className="answer-box">
-              <strong>AI Answer</strong>
-              <p>
-                RAG helps an AI answer questions by first finding
-                relevant information from trusted documents.
-              </p>
-            </div>
-
-            <p className="source-text">
-              📄 Example source: AI_Research.pdf — Page 12
-            </p>
-          </div>
-        </section>
-
-        {/* Features section */}
-        <section id="features" className="features-section">
-          <h2>Powerful Document Intelligence</h2>
-
-          <p className="section-description">
-            Everything you need to manage and understand documents.
-          </p>
-
-          <div className="feature-grid">
-            {features.map((feature) => (
-              <FeatureCard
-                key={feature.title}
-                icon={feature.icon}
-                title={feature.title}
-                description={feature.description}
-              />
-            ))}
-          </div>
-        </section>
-
-        {/* Workflow section */}
-        <section id="workflow" className="workflow-section">
-          <h2>How It Works</h2>
-
-          <div className="workflow-grid">
-            <div className="workflow-step">
-              <span>01</span>
-              <h3>Upload</h3>
-              <p>Add your PDF or document.</p>
-            </div>
-
-            <div className="workflow-step">
-              <span>02</span>
-              <h3>Process</h3>
-              <p>AI indexes the document content.</p>
-            </div>
-
-            <div className="workflow-step">
-              <span>03</span>
-              <h3>Ask</h3>
-              <p>Ask questions in natural language.</p>
-            </div>
-
-            <div className="workflow-step">
-              <span>04</span>
-              <h3>Understand</h3>
-              <p>Receive answers with source references.</p>
-            </div>
-          </div>
-        </section>
-      </main>
-
-      <footer className="footer">
-        Intelligent Document Analytics Hub — RAG SaaS Project
-      </footer>
-
-    </div>
-  )
+import { useEffect, useRef, useState } from "react";
+import { Link } from "react-router";
+import Icon from "../components/Icon.jsx";
+import { useAuth } from "../context/authContext.js";
+const steps = [
+  ["Upload", "Start with what you know.", "Add a text-bearing PDF, DOCX or TXT file to your private workspace. Up to 10 MB per file.", "upload"],
+  ["Extract", "Make the content accessible.", "Extract readable text from your document. Your original file stays in private storage.", "file"],
+  ["Chunk", "Give every idea its place.", "Split extracted text into overlapping passages so relevant context can be retrieved.", "layers"],
+  ["Embed", "Connect meaning, not just words.", "Ollama all-minilm turns each passage into a 384-dimensional vector stored in PostgreSQL.", "spark"],
+  ["Search", "Find the passage that matters.", "Search one of your documents with natural language and compare cosine similarity scores.", "search"],
+  ["Ask AI", "An answer with context.", "Qwen uses relevant document passages to produce a concise answer. Expand the original sources to check it.", "spark"],
+];
+const features = [
+  ["file", "Bring your documents", "PDF, DOCX or TXT. One private workspace for the material you're working with."],
+  ["layers", "Built for deeper reading", "Extract, chunk and embed text through a clear, controlled processing pipeline."],
+  ["search", "Search by meaning", "Ask naturally. Discover related passages without guessing the exact keywords."],
+  ["spark", "Move from text to answers", "Ask questions about a document, with conservative, context-grounded AI responses."],
+  ["clock", "Keep the evidence close", "Expand original context chunks and inspect their similarity scores beside your answer."],
+  ["shield", "A workspace of your own", "JWT authentication and backend ownership checks keep document access personal."],
+];
+function Reveal({ children, className = "" }) {
+  const ref = useRef(null);
+  useEffect(() => {
+    if (!window.IntersectionObserver || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    const observer = new IntersectionObserver(([entry]) => { if (entry.isIntersecting) { ref.current?.classList.add("revealed"); observer.disconnect(); } }, { threshold: 0.12 });
+    ref.current.classList.add("reveal-ready"); observer.observe(ref.current);
+    return () => observer.disconnect();
+  }, []);
+  return <div ref={ref} className={`reveal ${className}`}>{children}</div>;
 }
-
-export default Home
+export default function Home() {
+  const { isAuthenticated } = useAuth();
+  const [step, setStep] = useState(0);
+  const [preview, setPreview] = useState("answer");
+  const destination = isAuthenticated ? "/documents" : "/register";
+  return <main id="main-content" className="landing">
+    <section className="hero"><div className="hero-grid-light" aria-hidden="true" /><div className="hero-copy"><span className="hero-pill"><span className="status-dot" /> YOUR KNOWLEDGE, CONNECTED</span><h1>Less searching.<br />More <span className="gradient-text">understanding.</span></h1><p>Turn the documents you have into the answers you need. A focused workspace to explore, search, and connect with your knowledge.</p><div className="button-row"><Link to={destination} className="btn btn-primary">{isAuthenticated ? "Open your workspace" : "Start exploring"}<Icon name="arrow" size={18} /></Link><a className="btn btn-outline" href="#product-tour"><span className="play-symbol" aria-hidden="true">&#9655;</span> Take a product tour</a></div><div className="hero-notes"><span><Icon name="shield" size={15} /> Private by ownership</span><span><Icon name="spark" size={15} /> Powered by local AI</span></div></div>
+      <div className="hero-art" aria-label="Illustrative document-to-AI workflow"><div className="orbit orbit-one" /><div className="orbit orbit-two" /><div className="floating-document doc-pdf"><span className="file-badge pdf">PDF</span><span>Research notes.pdf<small>Ready to explore</small></span></div><div className="floating-document doc-txt"><span className="file-badge txt">TXT</span><span>Ideas, connected.<small>From text to context</small></span></div><svg className="connections" viewBox="0 0 520 440" aria-hidden="true"><path d="M100 95C100 220 260 90 260 215S450 290 430 370M420 80C420 190 280 80 260 215S110 260 110 360" fill="none" stroke="currentColor" strokeWidth="1.5" strokeDasharray="5 7" /></svg><div className="intelligence-core"><Icon name="spark" size={43} /><span>Discover the connection</span></div><div className="hero-answer"><span className="demo-label"><Icon name="spark" size={14} /> ILLUSTRATIVE AI PREVIEW</span><p>How do patients book appointments?</p><blockquote>&ldquo;Patients book appointments by calling reception.&rdquo;</blockquote><span className="source-chip"><Icon name="file" size={13} /> Sample clinic notes | Source 1</span></div><span className="art-caption">YOUR DOCUMENTS &rarr; MEANINGFUL CONTEXT</span></div>
+    </section>
+    <section className="technology-strip" aria-label="Technology used"><span>Thoughtfully built with</span><strong>React</strong><strong>Spring Boot</strong><strong>PostgreSQL</strong><strong>pgvector</strong><strong>Ollama</strong></section>
+    <section id="product-tour" className="landing-section"><Reveal><div className="section-heading"><div><span className="eyebrow">A CLOSER LOOK</span><h2>One workspace.<br /><span className="muted">From document to discovery.</span></h2></div><p>The context stays in view.<br />So you can check every discovery.</p></div><div className="product-window"><div className="window-bar"><span className="window-dots" aria-hidden="true">&#9679; &#9679; &#9679;</span><span>DocumentHub / Product tour</span><span className="demo-label">ILLUSTRATIVE EXAMPLE | NOT LIVE DATA</span></div><div className="product-layout"><div className="preview-sidebar"><span className="eyebrow">YOUR WORKSPACE</span>{[["upload", "Upload"], ["extract", "Extract text"], ["search", "Semantic search"], ["answer", "Ask AI"]].map(([value, label]) => <button key={value} className={preview === value ? "active" : ""} onClick={() => setPreview(value)}><Icon name={value === "answer" ? "spark" : value === "search" ? "search" : "file"} />{label}</button>)}<span className="preview-security"><Icon name="shield" size={16} /> Private document</span></div><div className="preview-main"><div className="section-heading"><div><span className="file-badge txt">TXT</span> <strong>Sample clinic notes.txt</strong></div><span className="badge">Synthetic fixture</span></div>{preview === "upload" ? <div className="demo-upload"><Icon name="upload" size={32} /><h3>Bring your next discovery.</h3><p>Upload PDF, DOCX or TXT in your real workspace.</p><Link to={destination} className="btn btn-primary">Open workspace <Icon name="arrow" size={16} /></Link></div> : preview === "extract" ? <div className="sample-text"><span className="eyebrow">ILLUSTRATIVE EXTRACTED TEXT</span><h3>A little context goes a long way.</h3><p>Patients book appointments by calling reception. The clinic is open Monday to Friday, 9 am to 5 pm.</p><p className="muted">The real workflow saves extracted text, creates overlapping chunks, then generates embeddings.</p></div> : <><div className="demo-question"><span className="avatar">Y</span><p>How do patients book appointments?</p></div><div className="demo-answer"><span className="ai-label"><Icon name={preview === "search" ? "search" : "spark"} />{preview === "search" ? "Matching passage" : "AI answer preview"}</span><p>Patients book appointments by calling reception.</p><details><summary><Icon name="file" size={15} /> Sample source 1 | Original context</summary><p>Patients book appointments by calling reception. The clinic is open Monday to Friday, 9 am to 5 pm.</p></details></div><small className="muted">Illustration only. Actual answers and similarity scores depend on your document.</small></>}</div></div></div></Reveal></section>
+    <section id="features" className="landing-section"><Reveal><span className="eyebrow">BUILT FOR YOUR NEXT AHA.</span><h2>Everything you need.<br /><span className="muted">Nothing between you and the insight.</span></h2><div className="feature-grid">{features.map(([icon, title, description], index) => <article className="feature-card" key={title}><span className={`feature-symbol tone-${index % 3}`}><Icon name={icon} size={23} /></span><h3>{title}</h3><p>{description}</p></article>)}</div></Reveal></section>
+    <section id="workflow" className="landing-section workflow-section"><Reveal><div className="section-heading"><div><span className="eyebrow">A CLEAR PATH TO CLARITY</span><h2>Six steps. One connected flow.</h2></div><p>You stay in control<br />at every step.</p></div><div className="pipeline" aria-label="Explore processing steps">{steps.map(([label], index) => <button aria-pressed={step === index} className={step === index ? "active" : ""} onClick={() => setStep(index)} key={label}><span>0{index + 1}</span>{label}{index < 5 && <Icon name="arrow" size={14} />}</button>)}</div><div className="pipeline-detail" key={step}><span className="pipeline-icon"><Icon name={steps[step][3]} size={36} /></span><div><span className="eyebrow">STEP 0{step + 1} / {steps[step][0].toUpperCase()}</span><h3>{steps[step][1]}</h3><p>{steps[step][2]}</p></div><Link to={destination} className="text-link">Try it in your workspace <Icon name="arrow" size={16} /></Link></div></Reveal></section>
+    <section id="technology" className="landing-section trust-section"><Reveal className="trust-layout"><div><span className="eyebrow">CONSIDERED, FROM THE INSIDE OUT</span><h2>Your knowledge.<br />A foundation you can trust.</h2><p>Built around clear boundaries: authenticated access, document ownership, and AI grounded in retrieved text.</p><Link to={destination} className="text-link">Meet your workspace <Icon name="arrow" size={16} /></Link></div><div className="trust-cards"><article><Icon name="shield" /><div><h3>Private by design</h3><p>JWT authentication and server-side ownership checks before documents are processed or queried.</p></div></article><article><Icon name="layers" /><div><h3>Meaning, stored with context</h3><p>Spring Boot and PostgreSQL with pgvector connect your original text to semantic retrieval.</p></div></article><article><Icon name="spark" /><div><h3>Local models. Visible sources.</h3><p>Ollama all-minilm and Qwen work with retrieved passages. Verify important information in the sources.</p></div></article></div></Reveal></section>
+    <section className="landing-section"><Reveal><span className="eyebrow">MAKE ROOM FOR BETTER QUESTIONS</span><h2>For the work you're curious about.</h2><div className="use-case-grid">{[["01", "Research", "Find relevant passages across a paper's text."], ["02", "Technical docs", "Explore specifications and implementation notes."], ["03", "Learning", "Revisit course material with focused questions."], ["04", "Business", "Navigate reports and internal reference documents."]].map(([n, title, desc]) => <article key={n}><span>{n}</span><h3>{title}</h3><p>{desc}</p></article>)}</div></Reveal></section>
+    <section className="landing-section faq-section"><Reveal><span className="eyebrow">GOOD QUESTIONS, CLEAR ANSWERS</span><h2>A little more context.</h2><div className="faq-list">{[["Which documents can I upload?", "PDF, DOCX and UTF-8 TXT files up to 10 MB. PDFs need readable text; OCR for scanned documents is not implemented."], ["Can AI answer anything about my document?", "It uses relevant retrieved passages and may decline when evidence is insufficient. The small local model and conservative grounding can reject valid paraphrases. Always verify important details."], ["What do the sources tell me?", "They show the original chunks supplied as context, with real similarity scores. They are not guaranteed sentence-level citations or page references."], ["Can anyone else see my documents?", "Document endpoints require a valid JWT and enforce ownership in the backend. Uploads are stored privately rather than exposed as public files."], ["What do I need to run it?", "The local application uses React, Spring Boot, PostgreSQL with pgvector, and Ollama with all-minilm and qwen2.5:0.5b. On an 8 GB machine, keep model requests sequential."]].map(([q, a]) => <details key={q}><summary>{q}<span>+</span></summary><p>{a}</p></details>)}</div></Reveal></section>
+    <section className="final-cta"><span className="mini-orb"><Icon name="spark" size={26} /></span><span className="eyebrow">YOUR NEXT INSIGHT IS IN THERE.</span><h2>Give your documents<br />a new dimension.</h2><p>Bring a document. Ask a better question.</p><Link className="btn btn-primary" to={destination}>{isAuthenticated ? "Go to your documents" : "Create your workspace"}<Icon name="arrow" size={17} /></Link></section>
+    <footer className="marketing-footer"><div><strong>DocumentHub</strong><p>Less searching. More understanding.</p><small>Intelligent Document Analytics Hub | Local AI workspace</small></div><nav aria-label="Footer navigation"><a href="#features">Features</a><a href="#workflow">How it works</a><a href="#technology">Technology & security</a><Link to={isAuthenticated ? "/dashboard" : "/login"}>{isAuthenticated ? "Dashboard" : "Sign in"}</Link></nav></footer>
+  </main>;
+}

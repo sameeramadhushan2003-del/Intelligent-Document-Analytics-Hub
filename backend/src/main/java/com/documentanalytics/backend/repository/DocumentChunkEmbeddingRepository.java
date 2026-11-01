@@ -3,6 +3,7 @@ package com.documentanalytics.backend.repository;
 
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
+import java.util.Set;
 
 @Repository
 public class DocumentChunkEmbeddingRepository {
@@ -14,6 +15,25 @@ public class DocumentChunkEmbeddingRepository {
     public DocumentChunkEmbeddingRepository(
             JdbcTemplate jdbcTemplate) {
         this.jdbcTemplate = jdbcTemplate;
+    }
+
+    public Set<Long> findExistingChunkIdsForDocumentAndModel(
+            Long documentId,
+            String modelName
+    ) {
+        String sql = """
+                SELECT embedding.chunk_id
+                FROM document_chunk_embeddings embedding
+                JOIN document_chunks chunk ON chunk.id = embedding.chunk_id
+                WHERE chunk.document_id = ?
+                  AND embedding.embedding_model = ?
+                """;
+        return Set.copyOf(jdbcTemplate.query(
+                sql,
+                (resultSet, rowNumber) -> resultSet.getLong(1),
+                documentId,
+                modelName.trim()
+        ));
     }
 
     public void saveOrUpdateEmbedding(
@@ -53,11 +73,7 @@ public class DocumentChunkEmbeddingRepository {
                 )
                 VALUES (?, ?, ?, CAST(? AS vector))
                 ON CONFLICT (chunk_id, embedding_model)
-                DO UPDATE SET
-                    embedding_dimensions =
-                        EXCLUDED.embedding_dimensions,
-                    embedding =
-                        EXCLUDED.embedding
+                DO NOTHING
                 """;
 
         jdbcTemplate.update(

@@ -4,9 +4,26 @@ Thumbs.db
 
 # Environment variables
 .env
+.env.*
+!.env.example
 
 # IDE files
 .vscode/
 .idea/
 
 /backend/target/
+
+# Local runtime data and diagnostic output
+**/node_modules/
+**/dist/
+**/private-uploads/
+**/uploads/
+*.log
+*.dump
+*.backup
+*.har
+*.jfr
+*.hprof
+
+# Local browser QA screenshots and temporary profile
+/frontend/.ui-qa/

@@ -59,7 +59,7 @@ class DocumentChunkPersistenceServiceTest {
     // Prepare an owned document with extracted text.
     private void prepareExtractedDocument() {
 
-        when(documentLibraryService.getMyDocument(
+        when(documentLibraryService.getMyDocumentForUpdate(
                 DOCUMENT_ID,
                 USER_ID
         )).thenReturn(mock(Document.class));
@@ -164,7 +164,7 @@ class DocumentChunkPersistenceServiceTest {
     @Test
     void rejectsDocumentWithoutExtraction() {
 
-        when(documentLibraryService.getMyDocument(
+        when(documentLibraryService.getMyDocumentForUpdate(
                 DOCUMENT_ID,
                 USER_ID
         )).thenReturn(mock(Document.class));
@@ -195,7 +195,7 @@ class DocumentChunkPersistenceServiceTest {
     @Test
     void rejectsUnauthorizedDocument() {
 
-        when(documentLibraryService.getMyDocument(
+        when(documentLibraryService.getMyDocumentForUpdate(
                 DOCUMENT_ID,
                 USER_ID
         )).thenThrow(new ResponseStatusException(

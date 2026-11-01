@@ -96,4 +96,31 @@ public class DocumentLibraryService {
                         )
                 );
     }
+
+    @Transactional
+    public Document getMyDocumentForUpdate(
+            Long documentId,
+            Long authenticatedUserId
+    ) {
+        validateUser(authenticatedUserId);
+
+        if (documentId == null || documentId <= 0) {
+            throw new ResponseStatusException(
+                    HttpStatus.NOT_FOUND,
+                    "Document not found."
+            );
+        }
+
+        return documentRepository
+                .findByIdAndOwnerUserIdForUpdate(
+                        documentId,
+                        authenticatedUserId
+                )
+                .orElseThrow(() ->
+                        new ResponseStatusException(
+                                HttpStatus.NOT_FOUND,
+                                "Document not found."
+                        )
+                );
+    }
 }

@@ -17,6 +17,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
+import java.nio.file.StandardCopyOption;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.Arrays;
@@ -198,42 +199,8 @@ public class PrivateFileStorageService {
 
     
     public void deleteStoredFile(String storageKey) {
-
-        if (storageKey == null) {
-            throw new IllegalArgumentException(
-                    "Storage key cannot be null."
-            );
-        }
-
         try {
-            String normalizedKey =
-                    UUID.fromString(storageKey).toString();
-
-            if (!normalizedKey.equals(storageKey)) {
-                throw new IllegalArgumentException(
-                        "Invalid storage key."
-                );
-            }
-
-        } catch (IllegalArgumentException exception) {
-            throw new IllegalArgumentException(
-                    "Invalid storage key.",
-                    exception
-            );
-        }
-
-        Path filePath = storageRoot
-                .resolve(storageKey)
-                .normalize();
-
-        if (!storageRoot.equals(filePath.getParent())) {
-            throw new IllegalArgumentException(
-                    "Storage path is invalid."
-            );
-        }
-
-        try {
-            Files.deleteIfExists(filePath);
+            Files.deleteIfExists(resolveStoredFile(storageKey));
 
         } catch (IOException exception) {
             throw new IllegalStateException(
@@ -242,6 +209,86 @@ public class PrivateFileStorageService {
             );
         }
     }
+
+    public StagedFile stageStoredFileDeletion(String storageKey) {
+        if (storageKey == null) {
+            return null;
+        }
+
+        Path originalFile = resolveStoredFile(storageKey);
+        if (!Files.exists(originalFile)) {
+            return null;
+        }
+
+        Path stagedFile = storageRoot.resolve(
+                ".pending-delete-" + UUID.randomUUID()
+        );
+        try {
+            Files.move(originalFile, stagedFile, StandardCopyOption.ATOMIC_MOVE);
+            return new StagedFile(originalFile, stagedFile);
+        } catch (IOException exception) {
+            throw new IllegalStateException(
+                    "Unable to prepare stored document for deletion.",
+                    exception
+            );
+        }
+    }
+
+    public void completeStagedFileDeletion(StagedFile stagedFile) {
+        if (stagedFile == null) {
+            return;
+        }
+
+        try {
+            Files.deleteIfExists(stagedFile.stagedPath());
+        } catch (IOException exception) {
+            throw new IllegalStateException(
+                    "Unable to remove staged document file.",
+                    exception
+            );
+        }
+    }
+
+    public void restoreStagedFile(StagedFile stagedFile) {
+        if (stagedFile == null || !Files.exists(stagedFile.stagedPath())) {
+            return;
+        }
+
+        try {
+            Files.move(
+                    stagedFile.stagedPath(),
+                    stagedFile.originalPath(),
+                    StandardCopyOption.ATOMIC_MOVE
+            );
+        } catch (IOException exception) {
+            throw new IllegalStateException(
+                    "Unable to restore document file after deletion rollback.",
+                    exception
+            );
+        }
+    }
+
+    private Path resolveStoredFile(String storageKey) {
+        if (storageKey == null) {
+            throw new IllegalArgumentException("Storage key cannot be null.");
+        }
+
+        try {
+            if (!UUID.fromString(storageKey).toString().equals(storageKey)) {
+                throw new IllegalArgumentException("Invalid storage key.");
+            }
+        } catch (IllegalArgumentException exception) {
+            throw new IllegalArgumentException("Invalid storage key.", exception);
+        }
+
+        Path filePath = storageRoot.resolve(storageKey).normalize();
+        if (!storageRoot.equals(filePath.getParent())) {
+            throw new IllegalArgumentException("Storage path is invalid.");
+        }
+        return filePath;
+    }
+
+    public record StagedFile(Path originalPath, Path stagedPath) {}
 
 
     private void validateContents(

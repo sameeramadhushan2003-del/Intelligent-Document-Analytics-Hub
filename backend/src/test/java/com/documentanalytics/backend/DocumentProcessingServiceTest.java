@@ -61,7 +61,7 @@ class DocumentProcessingServiceTest {
     @Test
     void savesNewDocumentExtraction() throws IOException {
 
-        when(documentLibraryService.getMyDocument(
+        when(documentLibraryService.getMyDocumentForUpdate(
                 DOCUMENT_ID, USER_ID
         )).thenReturn(document);
 
@@ -109,7 +109,7 @@ class DocumentProcessingServiceTest {
                         "Old document text"
                 );
 
-        when(documentLibraryService.getMyDocument(
+        when(documentLibraryService.getMyDocumentForUpdate(
                 DOCUMENT_ID, USER_ID
         )).thenReturn(document);
 
@@ -146,7 +146,7 @@ class DocumentProcessingServiceTest {
     @Test
     void rejectsDocumentWithoutOwnership() {
 
-        when(documentLibraryService.getMyDocument(
+        when(documentLibraryService.getMyDocumentForUpdate(
                 DOCUMENT_ID, USER_ID
         )).thenThrow(
                 new ResponseStatusException(
@@ -172,7 +172,7 @@ class DocumentProcessingServiceTest {
     @Test
     void doesNotSaveWhenExtractionFails() throws IOException {
 
-        when(documentLibraryService.getMyDocument(
+        when(documentLibraryService.getMyDocumentForUpdate(
                 DOCUMENT_ID, USER_ID
         )).thenReturn(document);
 

@@ -1,6 +1,7 @@
 
 import { useState } from 'react'
 import { Link } from 'react-router'
+import '../components/AuthLayout.css'
 import './Register.css'
 
 function Register() {
@@ -94,7 +95,7 @@ function Register() {
   }
 
   return (
-      <main className="register-page">
+      <main id="main-content" className="register-page auth-page">
         <section className="register-card">
           <div className="register-heading">
             <span className="register-eyebrow">

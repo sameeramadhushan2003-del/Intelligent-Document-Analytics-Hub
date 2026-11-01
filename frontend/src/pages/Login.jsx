@@ -1,7 +1,10 @@
 import "./Login.css";
-import { useState } from "react";
-import { Link, useNavigate } from "react-router";
-import { useAuth } from "../context/AuthContext.jsx";
+import { useRef, useState } from "react";
+import { Link, Navigate, useLocation, useNavigate } from "react-router";
+import { useAuth } from "../context/authContext.js";
+
+import { intendedRoute } from "../context/authSession.js";
+import "../components/AuthLayout.css";
 
 function Login() {
   const [email, setEmail] = useState("");
@@ -9,20 +12,26 @@ function Login() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
-  const { login } = useAuth();
+  const { login, isAuthenticated, initializing } = useAuth();
+  const location = useLocation();
+  const submitting = useRef(false);
+  const destination = intendedRoute(location.state?.from);
   const navigate = useNavigate();
 
   async function handleSubmit(event) {
     event.preventDefault();
+    if (submitting.current) return;
+    submitting.current = true;
 
     setError("");
     setLoading(true);
 
     try {
-      await login(email.trim(), password);
+      const account = await login(email.trim(), password);
+      if (!account) return;
 
       // Redirect after successful authentication
-      navigate("/dashboard", { replace: true });
+      navigate(destination, { replace: true });
 
     } catch (err) {
       setError(
@@ -30,15 +39,19 @@ function Login() {
       );
 
     } finally {
+      submitting.current = false;
       setLoading(false);
     }
   }
 
+  if (isAuthenticated) return <Navigate to={destination} replace />;
+
   return (
-    <main className="auth-container">
+    <main id="main-content" className="auth-container auth-page">
       <div className="auth-card">
 
-        <h1>Welcome Back</h1>
+        <span className="eyebrow">YOUR KNOWLEDGE AWAITS</span>
+        <h1>Welcome back.</h1>
 
         <p>
           Sign in to Intelligent Document Analytics Hub
@@ -78,22 +91,18 @@ function Login() {
             <p
               role="alert"
               className="form-message"
-              style={{
-                color: "#dc2626",
-                marginTop: "10px",
-              }}
             >
               {error}
             </p>
           )}
 
-        <button
-          type="submit"
-          className="login-submit-button"
-          disabled={loading}
-        >
-          {loading ? "Signing in..." : "Sign In"}
-        </button>         
+          <button
+            type="submit"
+            className="login-submit-button"
+            disabled={loading || initializing}
+          >
+            {loading ? "Signing in..." : "Sign In"}
+          </button>
 
         </form>
 

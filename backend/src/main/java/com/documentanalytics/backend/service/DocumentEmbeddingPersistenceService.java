@@ -6,13 +6,20 @@ import com.documentanalytics.backend.repository.DocumentChunkRepository;
 import com.documentanalytics.backend.repository.DocumentChunkEmbeddingRepository;
 
 import java.util.List;
+import java.util.Set;
 
 import org.springframework.http.HttpStatus;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
 @Service
 public class DocumentEmbeddingPersistenceService {
+
+    private static final Logger logger =
+            LoggerFactory.getLogger(DocumentEmbeddingPersistenceService.class);
 
     private final DocumentLibraryService documentLibraryService;
     private final DocumentChunkRepository chunkRepository;
@@ -31,6 +38,7 @@ public class DocumentEmbeddingPersistenceService {
         this.embeddingRepository = embeddingRepository;
     }
 
+    @Transactional
     public int generateAndSaveEmbeddings(
             Long documentId,
             Long authenticatedUserId) {
@@ -50,7 +58,7 @@ public class DocumentEmbeddingPersistenceService {
         }
 
         // Step 2: Verify document ownership.
-        documentLibraryService.getMyDocument(
+        documentLibraryService.getMyDocumentForUpdate(
                 documentId,
                 authenticatedUserId
         );
@@ -69,12 +77,26 @@ public class DocumentEmbeddingPersistenceService {
             );
         }
 
-        // Step 4: Generate and save one embedding per chunk.
-        int savedCount = 0;
-
+        // Step 4: Preserve vectors already generated for this model.
         String modelName = ollamaEmbeddingService.getModelName();
+        Set<Long> existingChunkIds =
+                embeddingRepository.findExistingChunkIdsForDocumentAndModel(
+                        documentId,
+                        modelName
+                );
+        logger.info(
+                "Embedding generation started: documentId={}, chunks={}, existingEmbeddings={}, model={}",
+                documentId,
+                chunks.size(),
+                existingChunkIds.size(),
+                modelName
+        );
 
+        // Keep upstream inference sequential to bound memory and CPU use.
         for (DocumentChunk chunk : chunks) {
+            if (existingChunkIds.contains(chunk.getId())) {
+                continue;
+            }
 
             String chunkText = chunk.getChunkText();
 
@@ -95,10 +117,8 @@ public class DocumentEmbeddingPersistenceService {
                     modelName,
                     embedding
             );
-
-            savedCount++;
         }
 
-        return savedCount;
+        return chunks.size();
     }
 }

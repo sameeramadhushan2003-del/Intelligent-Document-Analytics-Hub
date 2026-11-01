@@ -1,0 +1,1008 @@
+.workspace-shell {
+  --bg: #0d1424;
+  --surface: #172238;
+  --surface-raised: #202d46;
+  --text: #f3f6fe;
+  --muted: #acbcd5;
+  --line: #ffffff19;
+  --blue: #9ab0ff;
+  --primary: #819dff;
+  --secondary: #7259db;
+  --violet: #a78bfa;
+  --cyan: #4dd6c3;
+  --success: #4dd6c3;
+  --focus: #7de4dc;
+  --gradient: linear-gradient(120deg, #4566e8, #6655d8 72%, #8058c9);
+  --shadow: 0 14px 36px #02091633;
+  grid-template-columns: 252px minmax(0, 1fr);
+  min-height: 100vh;
+  background: var(--bg);
+  color: var(--text);
+}
+
+:root[data-theme="light"] .workspace-shell {
+  --bg: #f7f9fd;
+  --surface: #ffffff;
+  --surface-raised: #f0f3f9;
+  --text: #17243d;
+  --muted: #50617a;
+  --line: #dce4f0;
+  --blue: #3459d4;
+  --primary: #4566e8;
+  --secondary: #6554c9;
+  --violet: #7449bd;
+  --cyan: #087c78;
+  --success: #137d69;
+  --focus: #087c78;
+  --gradient: linear-gradient(120deg, #4566e8, #5c55d2 72%, #7552b7);
+  --shadow: 0 12px 30px #172e4f0d;
+}
+
+.workspace-shell :is(button, a, input, select, textarea, summary):focus-visible {
+  outline-color: var(--focus);
+  outline-offset: 3px;
+}
+
+.workspace-shell .sidebar {
+  width: 252px;
+  padding: 27px 18px 18px;
+  border-right-color: var(--line);
+  background: var(--surface);
+  color: var(--text);
+  box-shadow: 8px 0 28px #0611240b;
+}
+
+.workspace-shell .sidebar .brand {
+  margin: 0 8px 42px;
+}
+
+.workspace-shell .sidebar-label {
+  margin-bottom: 12px;
+  color: var(--muted);
+}
+
+.workspace-shell .sidebar nav {
+  gap: 7px;
+}
+
+.workspace-shell .sidebar nav a {
+  min-height: 48px;
+  padding: 11px 13px;
+  border-radius: 12px;
+  color: var(--muted);
+  font-size: 15px;
+  font-weight: 580;
+  transition: color .18s ease, background-color .18s ease, border-color .18s ease, transform .18s ease;
+}
+
+.workspace-shell .sidebar nav a:hover {
+  transform: translateX(2px);
+  border-color: color-mix(in srgb, var(--primary) 18%, transparent);
+  background: color-mix(in srgb, var(--primary) 7%, var(--surface));
+  color: var(--text);
+}
+
+.workspace-shell .sidebar nav a.active {
+  border-color: color-mix(in srgb, var(--primary) 24%, transparent);
+  background: color-mix(in srgb, var(--primary) 12%, var(--surface));
+  color: var(--primary);
+  font-weight: 680;
+}
+
+.workspace-shell .sidebar.sidebar-quick-action {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  margin: auto 2px 18px;
+  padding: 14px 12px;
+  border: 1px solid color-mix(in srgb, var(--primary) 20%, var(--line));
+  border-radius: 14px;
+  background: color-mix(in srgb, var(--primary) 6%, var(--surface));
+  color: var(--text);
+  transition: transform .18s ease, border-color .18s ease, background-color .18s ease;
+}
+
+.workspace-shell .sidebar.sidebar-quick-action:hover {
+  transform: translateY(-2px);
+  border-color: color-mix(in srgb, var(--primary) 42%, var(--line));
+  background: color-mix(in srgb, var(--primary) 10%, var(--surface));
+}
+
+.workspace-shell .sidebar-quick-action .mini-orb {
+  width: 38px;
+  height: 38px;
+  flex: 0 0 auto;
+  border-color: color-mix(in srgb, var(--primary) 24%, var(--line));
+  border-radius: 11px;
+  background: color-mix(in srgb, var(--primary) 12%, var(--surface));
+  color: var(--primary);
+}
+
+.workspace-shell .sidebar-quick-copy {
+  display: grid;
+  flex: 1;
+  gap: 3px;
+  min-width: 0;
+}
+
+.workspace-shell .sidebar-quick-copy strong {
+  font-size: 14px;
+  font-weight: 650;
+}
+
+.workspace-shell .sidebar-quick-copy small {
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.workspace-shell .sidebar-quick-action > svg {
+  color: var(--muted);
+}
+
+.workspace-shell .sidebar-home {
+  margin: 0 8px 18px;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.workspace-shell .sidebar-user {
+  min-height: 60px;
+  padding: 14px 4px 0;
+  border-top-color: var(--line);
+  color: var(--text);
+}
+
+.workspace-shell .sidebar-user strong {
+  color: var(--text);
+  font-size: 14px;
+}
+
+.workspace-shell .sidebar-user small {
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.workspace-shell .workspace-body {
+  min-width: 0;
+  background:
+    radial-gradient(ellipse at 82% 0, color-mix(in srgb, var(--primary) 5%, transparent), transparent 34rem),
+    var(--bg);
+  color: var(--text);
+}
+
+.workspace-shell .workspace-topbar {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  min-height: 72px;
+  padding-inline: clamp(20px, 3vw, 46px);
+  border-bottom-color: var(--line);
+  background: color-mix(in srgb, var(--surface) 92%, transparent);
+  backdrop-filter: blur(16px);
+}
+
+.workspace-shell .breadcrumb {
+  gap: 12px;
+  color: var(--muted);
+  font-size: 14px;
+}
+
+.workspace-shell .breadcrumb strong {
+  color: var(--text);
+  font-weight: 650;
+}
+
+.workspace-shell .private-indicator {
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.workspace-shell .workspace-content {
+  width: 100%;
+  max-width: 1640px;
+  min-height: calc(100vh - 144px);
+  padding: clamp(25px, 3vw, 44px) clamp(22px, 3vw, 48px) 48px;
+  animation: workspace-arrive .36s ease-out both;
+}
+
+.workspace-shell .workspace-footer {
+  margin-inline: clamp(22px, 3vw, 48px);
+  border-top-color: var(--line);
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.workspace-shell .dashboard-page {
+  min-width: 0;
+}
+
+.workspace-shell .dashboard-heading {
+  align-items: center;
+  margin: 0 0 26px;
+}
+
+.workspace-shell .dashboard-heading h1 {
+  margin: 9px 0 8px;
+  color: var(--text);
+  font-size: clamp(32px, 3vw, 40px);
+  font-weight: 720;
+  letter-spacing: -.045em;
+}
+
+.workspace-shell .dashboard-heading p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 15px;
+}
+
+.workspace-shell .dashboard-heading > .btn,
+.workspace-shell .dashboard-page .btn {
+  min-height: 46px;
+  border-radius: 12px;
+  font-size: 15px;
+}
+
+.workspace-shell .stat-grid {
+  gap: 16px;
+  margin-bottom: 22px;
+}
+
+.workspace-shell .stat-grid .stat-card {
+  position: relative;
+  min-width: 0;
+  overflow: hidden;
+  padding: 21px 23px;
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  background: linear-gradient(145deg, var(--surface), color-mix(in srgb, var(--surface-raised) 55%, var(--surface)));
+  box-shadow: var(--shadow);
+}
+
+.workspace-shell .stat-card::after {
+  width: 130px;
+  height: 130px;
+  right: -56px;
+  bottom: -72px;
+  border: 1px solid color-mix(in srgb, var(--primary) 12%, transparent);
+  background: color-mix(in srgb, var(--primary) 6%, transparent);
+}
+
+.workspace-shell .stat-grid .stat-card > div {
+  position: relative;
+  z-index: 1;
+  align-items: center;
+  color: var(--muted);
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.workspace-shell .stat-icon {
+  display: grid;
+  width: 40px;
+  height: 40px;
+  flex: 0 0 auto;
+  place-items: center;
+  border: 1px solid color-mix(in srgb, var(--primary) 22%, var(--line));
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--primary) 10%, var(--surface));
+  color: var(--primary);
+}
+
+.workspace-shell .stat-card-2 .stat-icon {
+  border-color: color-mix(in srgb, var(--success) 22%, var(--line));
+  background: color-mix(in srgb, var(--success) 9%, var(--surface));
+  color: var(--success);
+}
+
+.workspace-shell .stat-card-3 .stat-icon {
+  border-color: color-mix(in srgb, #d9973e 25%, var(--line));
+  background: color-mix(in srgb, #d9973e 10%, var(--surface));
+  color: #b47721;
+}
+
+:root[data-theme="dark"] .workspace-shell .stat-card-3 .stat-icon {
+  color: #efbd70;
+}
+
+.workspace-shell .stat-grid .stat-card > strong {
+  position: relative;
+  z-index: 1;
+  margin: 13px 0 5px;
+  color: var(--text);
+  font-size: clamp(34px, 3vw, 42px);
+  font-weight: 720;
+  letter-spacing: -.05em;
+  line-height: 1.15;
+}
+
+.workspace-shell .stat-grid .stat-card > small {
+  position: relative;
+  z-index: 1;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.workspace-shell .dashboard-banner.dashboard-ai-card {
+  position: relative;
+  min-height: 230px;
+  overflow: hidden;
+  align-items: center;
+  margin: 0 0 22px;
+  padding: clamp(24px, 3vw, 36px);
+  border: 1px solid color-mix(in srgb, var(--violet) 24%, var(--line));
+  border-radius: 20px;
+  background:
+    radial-gradient(ellipse at 78% 50%, color-mix(in srgb, var(--violet) 15%, transparent), transparent 40%),
+    linear-gradient(115deg, color-mix(in srgb, var(--surface) 96%, var(--primary)), var(--surface) 70%);
+  box-shadow: var(--shadow);
+}
+
+.workspace-shell .dashboard-ai-card::after {
+  position: absolute;
+  top: -105px;
+  right: 12%;
+  width: 250px;
+  height: 250px;
+  border: 1px solid color-mix(in srgb, var(--violet) 20%, transparent);
+  border-radius: 50%;
+  box-shadow: 0 0 0 28px color-mix(in srgb, var(--violet) 4%, transparent), 0 0 0 58px color-mix(in srgb, var(--primary) 3%, transparent);
+  content: "";
+  pointer-events: none;
+}
+
+.workspace-shell .dashboard-ai-copy {
+  position: relative;
+  z-index: 2;
+  max-width: 620px;
+}
+
+.workspace-shell .dashboard-ai-card .eyebrow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--violet);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: .08em;
+}
+
+.workspace-shell .dashboard-ai-card h2 {
+  margin: 14px 0 10px;
+  color: var(--text);
+  font-size: clamp(27px, 2.8vw, 35px);
+  font-weight: 700;
+  line-height: 1.18;
+}
+
+.workspace-shell .dashboard-ai-card h2 .muted {
+  color: color-mix(in srgb, var(--text) 75%, var(--violet));
+}
+
+.workspace-shell .dashboard-ai-card p {
+  max-width: 520px;
+  margin: 0 0 18px;
+  color: var(--muted);
+  font-size: 15px;
+  line-height: 1.6;
+}
+
+.workspace-shell .dashboard-ai-card .btn {
+  border-color: color-mix(in srgb, var(--violet) 35%, transparent);
+  background: linear-gradient(120deg, #6655d8, #8058c9);
+  box-shadow: 0 8px 22px color-mix(in srgb, var(--violet) 18%, transparent);
+}
+
+.workspace-shell .dashboard-ai-card .banner-visual {
+  position: relative;
+  z-index: 1;
+  gap: 20px;
+  margin: 0 clamp(10px, 5vw, 70px) 0 0;
+}
+
+.workspace-shell .dashboard-ai-card .banner-file {
+  width: 82px;
+  height: 108px;
+  gap: 12px;
+  border-color: color-mix(in srgb, var(--primary) 24%, var(--line));
+  border-radius: 14px;
+  background: color-mix(in srgb, var(--surface) 85%, transparent);
+  color: var(--primary);
+  box-shadow: 0 18px 40px #02091624;
+}
+
+.workspace-shell .dashboard-ai-card .banner-file span {
+  color: var(--muted);
+  font-size: 11px;
+}
+
+.workspace-shell .dashboard-ai-card .banner-arrow {
+  color: var(--violet);
+}
+
+.workspace-shell .dashboard-ai-card .banner-orb {
+  width: 78px;
+  height: 78px;
+  border-color: color-mix(in srgb, var(--violet) 40%, var(--line));
+  border-radius: 24px;
+  background: linear-gradient(145deg, #8b78e8, #5c64c8);
+  box-shadow: 0 12px 35px color-mix(in srgb, var(--violet) 26%, transparent);
+}
+
+.workspace-shell .dashboard-columns {
+  grid-template-columns: minmax(0, 1.55fr) minmax(280px, .85fr);
+  gap: 18px;
+}
+
+.workspace-shell .dashboard-columns > .surface {
+  min-width: 0;
+  padding: clamp(20px, 2.3vw, 28px);
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  background: var(--surface);
+  box-shadow: var(--shadow);
+}
+
+.workspace-shell .dashboard-columns h2 {
+  margin: 0;
+  color: var(--text);
+  font-size: 22px;
+  font-weight: 680;
+}
+
+.workspace-shell .dashboard-columns .section-heading {
+  margin-bottom: 13px;
+}
+
+.workspace-shell .dashboard-columns .section-heading p {
+  margin: 5px 0 0;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.workspace-shell .recent-list > a {
+  min-width: 0;
+  gap: 13px;
+  padding: 15px 7px;
+  border-top-color: var(--line);
+  border-radius: 10px;
+  transition: background-color .18s ease, transform .18s ease;
+}
+
+.workspace-shell .recent-list > a:hover {
+  transform: translateX(2px);
+  background: color-mix(in srgb, var(--primary) 5%, transparent);
+}
+
+.workspace-shell .recent-list .file-badge {
+  width: 42px;
+  min-width: 42px;
+  height: 46px;
+  border-radius: 12px;
+  font-size: 10px;
+}
+
+.workspace-shell .recent-list .document-name {
+  flex: 1;
+}
+
+.workspace-shell .recent-list .document-name strong {
+  color: var(--text);
+  font-size: 16px;
+  font-weight: 650;
+}
+
+.workspace-shell .recent-list .document-name small {
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.workspace-shell .dashboard-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  flex: 0 0 auto;
+  border-radius: 999px;
+  padding: 6px 9px;
+  font-size: 11px;
+  font-weight: 650;
+}
+
+.workspace-shell .dashboard-status.status-extracted,
+.workspace-shell .dashboard-status.status-indexed,
+.workspace-shell .dashboard-status.status-completed {
+  border-color: color-mix(in srgb, var(--success) 28%, var(--line));
+  background: color-mix(in srgb, var(--success) 9%, var(--surface));
+  color: var(--success);
+}
+
+.workspace-shell .dashboard-status.status-processing {
+  border-color: color-mix(in srgb, var(--primary) 28%, var(--line));
+  background: color-mix(in srgb, var(--primary) 9%, var(--surface));
+  color: var(--primary);
+}
+
+.workspace-shell .dashboard-status.status-uploaded,
+.workspace-shell .dashboard-status.status-pending {
+  border-color: color-mix(in srgb, #d9973e 30%, var(--line));
+  background: color-mix(in srgb, #d9973e 9%, var(--surface));
+  color: #9a6418;
+}
+
+:root[data-theme="light"] .workspace-shell .dashboard-status.status-failed,
+:root[data-theme="light"] .workspace-shell .dashboard-status.status-error {
+  border-color: #dc52604d;
+  background: #fff0f1;
+  color: #a52e3b;
+}
+
+:root[data-theme="dark"] .workspace-shell .dashboard-status.status-uploaded,
+:root[data-theme="dark"] .workspace-shell .dashboard-status.status-pending {
+  color: #efbd70;
+}
+
+:root[data-theme="dark"] .workspace-shell .dashboard-status.status-failed,
+:root[data-theme="dark"] .workspace-shell .dashboard-status.status-error {
+  border-color: #ff909a4a;
+  background: #522b354d;
+  color: #ff9aa3;
+}
+
+.workspace-shell .quick-start > .eyebrow {
+  color: var(--primary);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: .1em;
+}
+
+.workspace-shell .quick-start > h2 {
+  margin: 10px 0 21px;
+}
+
+.workspace-shell .guide-step {
+  gap: 13px;
+  margin-bottom: 18px;
+}
+
+.workspace-shell .guide-step > span {
+  width: 34px;
+  min-width: 34px;
+  height: 34px;
+  border-color: color-mix(in srgb, var(--primary) 25%, var(--line));
+  border-radius: 11px;
+  background: color-mix(in srgb, var(--primary) 7%, var(--surface));
+  color: var(--primary);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.workspace-shell .guide-step h3 {
+  color: var(--text);
+  font-size: 16px;
+  font-weight: 650;
+}
+
+.workspace-shell .guide-step p {
+  margin: 4px 0 0;
+  color: var(--muted);
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.workspace-shell .documents-page .surface {
+  border-color: var(--line);
+  background: var(--surface);
+  box-shadow: var(--shadow);
+}
+
+.workspace-shell .documents-page .documents-library-section,
+.workspace-shell .documents-page .documents-upload-section {
+  border-color: color-mix(in srgb, var(--primary) 14%, var(--line));
+}
+
+.workspace-shell .documents-page .documents-table-wrapper {
+  border: 1px solid var(--line);
+  background: var(--surface);
+}
+
+.workspace-shell .documents-page .documents-table tbody tr {
+  border-bottom-color: var(--line);
+}
+
+.workspace-shell .documents-page .document-actions button {
+  min-height: 42px;
+  padding-inline: 12px;
+  border-color: var(--line);
+  background: var(--surface);
+  font-size: 14px;
+  font-weight: 620;
+}
+
+.workspace-shell .documents-page .document-actions button:nth-child(3) {
+  border-color: color-mix(in srgb, var(--primary) 25%, var(--line));
+  background: color-mix(in srgb, var(--primary) 7%, var(--surface));
+}
+
+.workspace-shell .documents-page .document-actions .ask-action {
+  border-color: color-mix(in srgb, var(--violet) 33%, var(--line));
+  background: color-mix(in srgb, var(--violet) 9%, var(--surface));
+  color: var(--violet);
+}
+
+.workspace-shell .documents-page .document-actions .delete-action {
+  border-color: color-mix(in srgb, #dc5260 28%, var(--line));
+  background: color-mix(in srgb, #dc5260 6%, var(--surface));
+  color: #c34652;
+}
+
+:root[data-theme="dark"] .workspace-shell .documents-page .document-actions .delete-action {
+  color: #ff909a;
+}
+
+.workspace-shell .documents-page .document-actions button:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 5px 15px #0913281a;
+}
+
+.workspace-shell .semantic-search,
+.workspace-shell .rag-panel {
+  border: 1px solid color-mix(in srgb, var(--primary) 18%, var(--line));
+  border-radius: 18px;
+  background:
+    radial-gradient(ellipse at 100% 0, color-mix(in srgb, var(--primary) 7%, transparent), transparent 42%),
+    var(--surface);
+  color: var(--text);
+  box-shadow: var(--shadow);
+}
+
+.workspace-shell .rag-panel {
+  border-color: color-mix(in srgb, var(--violet) 24%, var(--line));
+  background:
+    radial-gradient(ellipse at 100% 0, color-mix(in srgb, var(--violet) 8%, transparent), transparent 42%),
+    var(--surface);
+}
+
+.workspace-shell :is(.semantic-search, .rag-panel) :is(h3, h4, strong, label) {
+  color: var(--text);
+}
+
+.workspace-shell :is(.semantic-search, .rag-panel) :is(p, small) {
+  color: var(--muted);
+}
+
+.workspace-shell .semantic-search-heading .eyebrow {
+  color: var(--primary);
+}
+
+.workspace-shell .rag-header .eyebrow {
+  color: var(--violet);
+}
+
+.workspace-shell :is(.semantic-search-form textarea, .rag-panel textarea) {
+  min-height: 112px;
+  border: 1px solid color-mix(in srgb, var(--text) 18%, var(--line));
+  border-radius: 12px;
+  background: var(--surface-raised);
+  color: var(--text);
+  font-size: 15px;
+}
+
+.workspace-shell :is(.semantic-search-form textarea, .rag-panel textarea)::placeholder {
+  color: var(--muted);
+  opacity: .8;
+}
+
+.workspace-shell :is(.semantic-search-controls select) {
+  min-height: 42px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--surface-raised);
+  color: var(--text);
+  font-size: 14px;
+}
+
+.workspace-shell .semantic-search-submit,
+.workspace-shell .rag-submit {
+  min-height: 44px;
+  border-radius: 11px;
+  font-size: 14px;
+  font-weight: 650;
+}
+
+.workspace-shell .rag-submit {
+  background: linear-gradient(120deg, #7259d8, #8057c5);
+}
+
+.workspace-shell .rag-close,
+.workspace-shell .rag-copy {
+  min-height: 40px;
+  border-color: var(--line);
+  border-radius: 10px;
+  background: var(--surface-raised);
+  color: var(--text);
+  font-size: 13px;
+}
+
+.workspace-shell .semantic-result,
+.workspace-shell .rag-source {
+  border: 1px solid var(--line);
+  border-radius: 13px;
+  background: var(--surface-raised);
+}
+
+.workspace-shell .semantic-result-heading span {
+  color: var(--success);
+}
+
+.workspace-shell .semantic-result > p,
+.workspace-shell .rag-source p {
+  color: var(--text);
+  font-size: 15px;
+  line-height: 1.75;
+}
+
+.workspace-shell .rag-answer {
+  border-color: color-mix(in srgb, var(--violet) 23%, var(--line));
+  border-radius: 14px;
+  background: color-mix(in srgb, var(--violet) 6%, var(--surface-raised));
+  color: var(--text);
+  font-size: 16px;
+}
+
+.workspace-shell .rag-source summary {
+  color: var(--primary);
+  font-size: 14px;
+}
+
+.workspace-shell .profile-dialog {
+  border-color: var(--line);
+  background: var(--surface);
+  color: var(--text);
+  box-shadow: 0 24px 70px #02091644;
+}
+
+.workspace-shell .profile-dialog::backdrop {
+  background: #0611248a;
+}
+
+.workspace-shell .profile-dialog h2 {
+  color: var(--text);
+}
+
+.workspace-shell .profile-dialog p {
+  color: var(--muted);
+}
+
+@keyframes workspace-arrive {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@media (max-width: 1100px) {
+  .workspace-shell .dashboard-columns {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .workspace-shell .dashboard-ai-card .banner-visual {
+    margin-right: 8px;
+  }
+}
+
+@media (max-width: 900px) {
+  .workspace-shell {
+    grid-template-columns: 200px minmax(0, 1fr);
+  }
+
+  .workspace-shell .sidebar {
+    width: 200px;
+  }
+
+  .workspace-shell .dashboard-ai-card {
+    min-height: 215px;
+    align-items: flex-start;
+  }
+
+  .workspace-shell .dashboard-ai-card .banner-visual {
+    position: absolute;
+    right: 12px;
+    bottom: 12px;
+    margin: 0;
+    opacity: .24;
+    transform: scale(.85);
+    transform-origin: bottom right;
+    pointer-events: none;
+  }
+}
+
+@media (max-width: 767px) {
+  .workspace-shell {
+    display: block;
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .workspace-shell .sidebar {
+    width: 260px;
+    padding: 25px 16px 18px;
+    border-right-color: var(--line);
+    background: var(--surface);
+    box-shadow: 24px 0 60px #06112433;
+  }
+
+  .workspace-shell .sidebar .brand {
+    margin-bottom: 42px;
+  }
+
+  .workspace-shell .sidebar-quick-action {
+    margin-top: auto;
+  }
+
+  .workspace-shell .workspace-topbar {
+    min-height: 65px;
+    padding-inline: 16px;
+  }
+
+  .workspace-shell .workspace-content {
+    min-height: calc(100vh - 130px);
+    padding: 24px 18px 34px;
+  }
+
+  .workspace-shell .workspace-footer {
+    margin-inline: 18px;
+    padding-block: 15px;
+  }
+
+  .workspace-shell .dashboard-heading {
+    align-items: flex-start;
+  }
+
+  .workspace-shell .dashboard-heading > .btn {
+    flex: 0 0 auto;
+  }
+
+  .workspace-shell .stat-grid {
+    gap: 11px;
+  }
+
+  .workspace-shell .stat-card {
+    padding: 16px;
+  }
+
+  .workspace-shell .stat-card > div {
+    align-items: flex-start;
+    font-size: 13px;
+  }
+
+  .workspace-shell .stat-icon {
+    width: 34px;
+    height: 34px;
+  }
+
+  .workspace-shell .dashboard-ai-card {
+    min-height: 210px;
+    padding: 24px;
+  }
+
+  .workspace-shell .dashboard-ai-card .banner-visual {
+    opacity: .32;
+    position: absolute;
+    right: 4px;
+    bottom: 20px;
+    margin: 0;
+    transform: scale(.8);
+    transform-origin: bottom right;
+    pointer-events: none;
+  }
+
+  .workspace-shell .dashboard-ai-copy {
+    max-width: min(100%, 520px);
+  }
+
+  .workspace-shell .dashboard-ai-card p {
+    max-width: 400px;
+  }
+
+  .workspace-shell .dashboard-status {
+    padding: 5px 7px;
+    font-size: 10px;
+  }
+
+  .workspace-shell .recent-list > a {
+    flex-wrap: wrap;
+  }
+
+  .workspace-shell .recent-list > a > .document-name {
+    flex-basis: calc(100% - 115px);
+  }
+}
+
+@media (max-width: 520px) {
+  .workspace-shell .workspace-content {
+    padding-inline: 15px;
+  }
+
+  .workspace-shell .dashboard-heading {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 16px;
+  }
+
+  .workspace-shell .dashboard-heading > .btn {
+    width: 100%;
+  }
+
+  .workspace-shell .stat-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .workspace-shell .stat-card {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    column-gap: 12px;
+    padding: 14px 16px;
+  }
+
+  .workspace-shell .stat-card > div {
+    grid-column: 1;
+    grid-row: 1;
+  }
+
+  .workspace-shell .stat-card > strong {
+    grid-column: 2;
+    grid-row: 1 / span 2;
+    margin: 0;
+    font-size: 32px;
+  }
+
+  .workspace-shell .stat-card > small {
+    grid-column: 1;
+    grid-row: 2;
+  }
+
+  .workspace-shell .dashboard-ai-card {
+    min-height: 0;
+    padding: 21px 18px;
+  }
+
+  .workspace-shell .dashboard-ai-card .eyebrow {
+    font-size: 10px;
+  }
+
+  .workspace-shell .dashboard-ai-card .banner-visual {
+    display: none;
+  }
+
+  .workspace-shell .documents-page .documents-table tbody tr {
+    background: var(--surface);
+  }
+
+  .workspace-shell .documents-page .document-actions button {
+    flex: 1 1 42%;
+  }
+
+  .workspace-shell .recent-list > a {
+    gap: 9px;
+  }
+
+  .workspace-shell .dashboard-status {
+    margin-left: 50px;
+  }
+
+  .workspace-shell .breadcrumb {
+    gap: 8px;
+    font-size: 13px;
+  }
+
+  .workspace-shell .topbar-actions {
+    gap: 9px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .workspace-shell .workspace-content {
+    animation: none;
+  }
+
+  .workspace-shell :is(.sidebar nav a, .sidebar-quick-action, .recent-list > a, .document-actions button) {
+    transition: none;
+  }
+}

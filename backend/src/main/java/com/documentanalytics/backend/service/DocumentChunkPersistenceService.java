@@ -57,7 +57,7 @@ public class DocumentChunkPersistenceService {
 
         // Step 2: Verify document ownership.
         // This also checks whether the user is active.
-        documentLibraryService.getMyDocument(
+        documentLibraryService.getMyDocumentForUpdate(
                 documentId,
                 authenticatedUserId
         );

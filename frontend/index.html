@@ -9,7 +9,22 @@
       name="description"
       content="An intelligent document analytics platform powered by RAG and AI"
     />
-
+    <script>
+      (() => {
+        try {
+          const stored = localStorage.getItem("document-hub.theme.v1");
+          const mode = ["system", "light", "dark"].includes(stored) ? stored : "system";
+          const dark = mode === "dark" ||
+            (mode === "system" && matchMedia("(prefers-color-scheme: dark)").matches);
+          document.documentElement.dataset.theme = dark ? "dark" : "light";
+          document.documentElement.dataset.themeMode = mode;
+        } catch {
+          const dark = matchMedia("(prefers-color-scheme: dark)").matches;
+          document.documentElement.dataset.theme = dark ? "dark" : "light";
+          document.documentElement.dataset.themeMode = "system";
+        }
+      })();
+    </script>
     <title>Intelligent Document Analytics Hub</title>
 
   </head>

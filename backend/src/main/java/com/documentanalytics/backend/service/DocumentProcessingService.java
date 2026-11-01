@@ -54,7 +54,7 @@ public class DocumentProcessingService {
         // Step 2: Check ownership and account status
         // through our existing library service.
         Document document =
-                documentLibraryService.getMyDocument(
+                documentLibraryService.getMyDocumentForUpdate(
                         documentId,
                         authenticatedUserId
                 );

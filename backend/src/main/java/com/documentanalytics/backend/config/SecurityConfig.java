@@ -15,6 +15,10 @@ import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import java.util.List;
+import org.springframework.security.oauth2.core.DelegatingOAuth2TokenValidator;
+import org.springframework.security.oauth2.core.OAuth2Error;
+import org.springframework.security.oauth2.core.OAuth2TokenValidator;
+import org.springframework.security.oauth2.core.OAuth2TokenValidatorResult;
 
 import javax.crypto.SecretKey;
 import javax.crypto.spec.SecretKeySpec;
@@ -53,11 +57,19 @@ public class SecurityConfig {
                 .macAlgorithm(MacAlgorithm.HS256)
                 .build();
 
-        decoder.setJwtValidator(
-                JwtValidators.createDefaultWithIssuer(
-                        "document-analytics-hub"
-                )
-        );
+        OAuth2TokenValidator<Jwt> identity = jwt -> {
+            try {
+                if (jwt.getExpiresAt() != null && Long.parseLong(jwt.getSubject()) > 0) {
+                    return OAuth2TokenValidatorResult.success();
+                }
+            } catch (RuntimeException ignored) {
+                // Invalid subject/claim types must fail before controllers parse them.
+            }
+            return OAuth2TokenValidatorResult.failure(new OAuth2Error(
+                    "invalid_token", "Invalid authentication token.", null));
+        };
+        decoder.setJwtValidator(new DelegatingOAuth2TokenValidator<>(
+                JwtValidators.createDefaultWithIssuer("document-analytics-hub"), identity));
 
         return decoder;
     }

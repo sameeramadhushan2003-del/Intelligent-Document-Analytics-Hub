@@ -1,10 +1,10 @@
+import { useEffect, useId, useRef, useState } from "react";
+import Icon from "./Icon.jsx";
+import "./DocumentSemanticSearch.css";
 
-import { useState } from "react";
-
-export default function DocumentSemanticSearch({
-  documentId,
-  accessToken,
-}) {
+export default function DocumentSemanticSearch({ documentId, accessToken }) {
+  const id = useId();
+  const requestRef = useRef(null);
   const [query, setQuery] = useState("");
   const [limit, setLimit] = useState(5);
   const [results, setResults] = useState([]);
@@ -12,73 +12,58 @@ export default function DocumentSemanticSearch({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
+  useEffect(() => () => requestRef.current?.abort(), []);
+
   async function handleSearch(event) {
     event.preventDefault();
-
-    if (loading) return;
+    if (requestRef.current) return;
 
     const cleanQuery = query.trim();
-
     if (!cleanQuery) {
       setError("Please enter a search question.");
       return;
     }
 
     if (!accessToken) {
-      setError("Please log in again.");
+      setError("Please sign in again before searching.");
       return;
     }
 
+    const controller = new AbortController();
+    requestRef.current = controller;
     setLoading(true);
     setError("");
     setResults([]);
     setHasSearched(false);
 
     try {
-      const response = await fetch(
-        `http://localhost:8080/api/documents/${documentId}/search`,
-        {
-          method: "POST",
-          headers: {
-            Authorization: `Bearer ${accessToken}`,
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            query: cleanQuery,
-            limit: Number(limit),
-          }),
-        }
-      );
+      const response = await fetch(`/api/documents/${documentId}/search`, {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ query: cleanQuery, limit: Number(limit) }),
+        signal: controller.signal,
+      });
 
       if (!response.ok) {
         if (response.status === 400) {
           throw new Error("Please enter a valid search question.");
         }
-
         if (response.status === 401) {
-          throw new Error(
-            "Your session has expired. Please log in again."
-          );
+          throw new Error("Your session has expired. Please sign in again.");
         }
-
-        if (response.status === 403 ||
-            response.status === 404) {
+        if (response.status === 403 || response.status === 404) {
           throw new Error("Document not found or access denied.");
         }
-
         if (response.status === 409) {
-          throw new Error(
-            "No searchable embeddings found. Generate embeddings first."
-          );
+          throw new Error("No searchable embeddings found. Generate embeddings first.");
         }
-
-        throw new Error(
-          `Semantic search failed (HTTP ${response.status}).`
-        );
+        throw new Error(`Semantic search failed (HTTP ${response.status}).`);
       }
 
       const data = await response.json();
-
       if (!Array.isArray(data.results)) {
         throw new Error("Invalid search response from the server.");
       }
@@ -86,180 +71,81 @@ export default function DocumentSemanticSearch({
       setResults(data.results);
       setHasSearched(true);
     } catch (err) {
-      setError(
-        err.message || "Unable to search the document."
-      );
+      if (!controller.signal.aborted) {
+        setError(err instanceof TypeError
+          ? "Unable to connect to search. Check your connection and try again."
+          : err.message || "Unable to search the document.");
+      }
     } finally {
-      setLoading(false);
+      if (!controller.signal.aborted) {
+        requestRef.current = null;
+        setLoading(false);
+      }
     }
   }
 
   return (
-    <section
-      aria-label={`Semantic search for document ${documentId}`}
-      style={{
-        marginTop: "20px",
-        padding: "24px",
-        backgroundColor: "#ffffff",
-        border: "1px solid #e2e8f0",
-        borderRadius: "12px",
-      }}
-    >
-      <h3 style={{ marginTop: 0, color: "#0f172a" }}>
-        Semantic Search — Document #{documentId}
-      </h3>
+    <section className="semantic-search" aria-label="Document semantic search">
+      <div className="semantic-search-heading">
+        <div>
+          <span className="eyebrow"><Icon name="search" size={14} /> MEANINGFUL SEARCH</span>
+          <h3>Find the passage that matters.</h3>
+          <p>Search this document by meaning, not just matching words.</p>
+        </div>
+        <span className="semantic-document-label">Document #{documentId}</span>
+      </div>
 
-      <p style={{ color: "#64748b" }}>
-        Ask a question and find relevant information
-        from your uploaded document.
-      </p>
-
-      <form onSubmit={handleSearch}>
-        <label
-          htmlFor="document-semantic-query"
-          style={{
-            display: "block",
-            marginBottom: "8px",
-            fontWeight: 600,
-          }}
-        >
-          Your Question
-        </label>
-
+      <form className="semantic-search-form" onSubmit={handleSearch} aria-busy={loading}>
+        <label htmlFor={`${id}-query`}>Your question</label>
         <textarea
-          id="document-semantic-query"
+          id={`${id}-query`}
           value={query}
           onChange={(event) => setQuery(event.target.value)}
           placeholder="What information does this document contain?"
           rows={3}
           maxLength={10000}
           disabled={loading}
-          style={{
-            width: "100%",
-            padding: "12px",
-            border: "1px solid #cbd5e1",
-            borderRadius: "8px",
-            boxSizing: "border-box",
-            fontFamily: "inherit",
-            resize: "vertical",
-          }}
         />
-
-        <div
-          style={{
-            display: "flex",
-            gap: "12px",
-            alignItems: "center",
-            flexWrap: "wrap",
-            marginTop: "14px",
-          }}
-        >
-          <label htmlFor="semantic-result-limit">
-            Results:
-          </label>
-
+        <div className="semantic-search-controls">
+          <label htmlFor={`${id}-limit`}>Results</label>
           <select
-            id="semantic-result-limit"
+            id={`${id}-limit`}
             value={limit}
-            onChange={(event) =>
-              setLimit(Number(event.target.value))
-            }
+            onChange={(event) => setLimit(Number(event.target.value))}
             disabled={loading}
-            style={{
-              padding: "9px",
-              borderRadius: "7px",
-            }}
           >
             <option value={3}>Top 3</option>
             <option value={5}>Top 5</option>
             <option value={10}>Top 10</option>
           </select>
-
-          <button
-            type="submit"
-            disabled={loading || !query.trim()}
-            style={{
-              padding: "11px 20px",
-              border: "none",
-              borderRadius: "8px",
-              backgroundColor: "#2563eb",
-              color: "#ffffff",
-              cursor: loading ? "wait" : "pointer",
-            }}
-          >
-            {loading ? "Searching..." : "Search Document"}
+          <button className="semantic-search-submit" type="submit" disabled={loading || !query.trim()}>
+            {loading ? <><span className="loader" /> Searching…</> : <>Search document <Icon name="arrow" size={15} /></>}
           </button>
         </div>
       </form>
 
-      {error && (
-        <p
-          role="alert"
-          style={{
-            marginTop: "16px",
-            color: "#b91c1c",
-          }}
-        >
-          {error}
-        </p>
-      )}
-
+      {error && <p className="semantic-search-error" role="alert">{error}</p>}
+      {loading && <p className="semantic-search-status" role="status">Finding relevant passages in this document…</p>}
       {hasSearched && (
-        <div style={{ marginTop: "24px" }}>
-          <h4 style={{ color: "#0f172a" }}>
-            Search Results ({results.length})
-          </h4>
-
-          {results.length === 0 && (
-            <p>No matching document chunks were returned.</p>
+        <div className="semantic-search-results" aria-live="polite">
+          <h4>Relevant passages <span className="count-badge">{results.length}</span></h4>
+          {results.length === 0 ? (
+            <p className="semantic-search-empty">No matching passages were returned. Try asking in a different way.</p>
+          ) : (
+            results.map((item) => (
+              <article className="semantic-result" key={item.chunkId}>
+                <div className="semantic-result-heading">
+                  <strong>Passage {item.chunkIndex + 1}</strong>
+                  <span>Cosine similarity:{" "}
+                    {typeof item.similarityScore === "number" && Number.isFinite(item.similarityScore)
+                      ? item.similarityScore.toFixed(3)
+                      : "N/A"}
+                  </span>
+                </div>
+                <p>{item.chunkText}</p>
+              </article>
+            ))
           )}
-
-          {results.map((item) => (
-            <article
-              key={item.chunkId}
-              style={{
-                border: "1px solid #e2e8f0",
-                borderRadius: "10px",
-                padding: "16px",
-                marginTop: "12px",
-                backgroundColor: "#f8fafc",
-              }}
-            >
-              <div
-                style={{
-                  display: "flex",
-                  justifyContent: "space-between",
-                  gap: "12px",
-                  flexWrap: "wrap",
-                  marginBottom: "10px",
-                }}
-              >
-                <strong>
-                  Chunk {item.chunkIndex}
-                </strong>
-
-                <span style={{ color: "#0f766e" }}>
-                  Cosine similarity:{" "}
-                  {typeof item.similarityScore === "number"
-                    && Number.isFinite(item.similarityScore)
-                    ? item.similarityScore.toFixed(3)
-                    : "N/A"}
-                </span>
-              </div>
-
-              <p
-                style={{
-                  whiteSpace: "pre-wrap",
-                  overflowWrap: "anywhere",
-                  color: "#334155",
-                  lineHeight: 1.7,
-                  margin: 0,
-                }}
-              >
-                {item.chunkText}
-              </p>
-            </article>
-          ))}
         </div>
       )}
     </section>

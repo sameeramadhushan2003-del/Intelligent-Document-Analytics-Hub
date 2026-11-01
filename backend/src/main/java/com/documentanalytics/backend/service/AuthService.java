@@ -6,6 +6,7 @@ import com.documentanalytics.backend.dto.LoginResponse;
 import com.documentanalytics.backend.dto.MeResponse;
 import com.documentanalytics.backend.entity.AppUser;
 import com.documentanalytics.backend.repository.AppUserRepository;
+import java.nio.charset.StandardCharsets;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -32,6 +33,11 @@ public class AuthService {
 
     @Transactional(readOnly = true)
     public LoginResponse login(LoginRequest request) {
+
+        if (request.password().getBytes(StandardCharsets.UTF_8).length > 72) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                    "Password must not exceed 72 UTF-8 bytes.");
+        }
 
         AppUser user = userRepository
                 .findByEmailIgnoreCase(request.email().trim())
